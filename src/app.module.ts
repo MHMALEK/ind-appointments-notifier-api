@@ -11,6 +11,7 @@ import { TimeCompareService } from './time-compare/time-compare.service';
 import { TimeCompareModule } from './time-compare/time-compare.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronjobsService } from './cronjobs/cronjobs.service';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CronjobsService } from './cronjobs/cronjobs.service';
     IndAppointmentsModule,
     TimeCompareModule,
     ScheduleModule.forRoot(),
+    UsersModule,
   ],
   controllers: [AppController, IndAmsterdamController],
   providers: [

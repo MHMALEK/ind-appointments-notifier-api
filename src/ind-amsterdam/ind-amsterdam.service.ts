@@ -9,7 +9,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 export class IndAmsterdamService {
   constructor(private readonly httpService: HttpService) {}
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  // @Cron(CronExpression.EVERY_30_SECONDS)
   findAll(): Observable<
     AxiosResponse<{ status: number; data: Appointment[] }>
   > {
@@ -18,7 +18,7 @@ export class IndAmsterdamService {
     );
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  // @Cron(CronExpression.EVERY_10_SECONDS)
   cronaMa(): Observable<
     AxiosResponse<{ status: number; data: Appointment[] }>
   > {

@@ -24,17 +24,23 @@ export class IndAmsterdamController {
   // @Cron(CronExpression.EVERY_10_SECONDS)
   @Get()
   findSoonest() {
-    console.log('asdasd');
-    return this.indAmsterdamService.findAll().subscribe((response) => {
-      const data = this.indAppointmentService.transformData(
-        response.data as unknown as string,
-      );
-      if (data.status === 'OK') {
-        return this.indAppointmentService.getSoonestSlot(data.data);
-      } else {
-        throw new HttpException('can not find any time', 500);
-      }
-    });
+    return this.indAmsterdamService.findAll().pipe(
+      map((response) => {
+        const data = this.indAppointmentService.transformData(
+          response.data as unknown as string,
+        );
+        if (data.status === 'OK') {
+          console.log(
+            'malek',
+            this.indAppointmentService.getSoonestSlot(data.data),
+          );
+
+          return this.indAppointmentService.getSoonestSlot(data.data);
+        } else {
+          throw new HttpException('can not find any time', 500);
+        }
+      }),
+    );
   }
 
   @Get('compare/:time?')

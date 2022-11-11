@@ -1,0 +1,6 @@
+enum IND_SERVICES {
+  BIOMETRICS = 'BIO',
+  COLLECT_DOCUMENTS = 'DOC',
+}
+
+export default IND_SERVICES;

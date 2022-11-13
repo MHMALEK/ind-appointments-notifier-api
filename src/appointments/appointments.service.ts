@@ -8,6 +8,8 @@ import {
   QueryBuilderService,
 } from 'src/query-builder/query-builder.service';
 import { TimeCompareService } from 'src/time-compare/time-compare.service';
+import IND_DESKS from 'src/types/ind-desks';
+import IND_SERVICES from 'src/types/ind-services';
 
 @Injectable()
 export class AppointmentsService {
@@ -18,7 +20,7 @@ export class AppointmentsService {
     private dataBaseService: DbService,
   ) {}
 
-  transformData(response: string) {
+  private transformData(response: string) {
     try {
       const rawData = response.slice(5, response.length);
       return JSON.parse(rawData);
@@ -27,11 +29,11 @@ export class AppointmentsService {
     }
   }
 
-  getSoonestSlot(data: Appointment[]) {
+  private getSoonestSlot(data: Appointment[]) {
     return data[0];
   }
 
-  generateHttpRequest(payload = defaultINDAPIPayload) {
+  private generateHttpRequest(payload = defaultINDAPIPayload) {
     return this.httpService.get(
       this.queryBuilderService.generateQuery(payload),
     );
@@ -97,13 +99,13 @@ export class AppointmentsService {
       });
   }
 
-  async saveToDB(data) {
-    return await this.dataBaseService.updateItemInDataBase(data);
+  async saveToDB(dbName, data) {
+    return await this.dataBaseService.saveOnlyOneItemInCollection(dbName, data);
   }
 
-  async findSoonestAndSaveToDataBase() {
-    const soonestTime = await this.findSoonest(defaultINDAPIPayload);
-    const savedData = await this.saveToDB(soonestTime);
+  async findSoonestAndSaveToDataBase(payload = defaultINDAPIPayload) {
+    const soonestTime = await this.findSoonest(payload);
+    const savedData = await this.saveToDB(payload.desk, soonestTime);
     return savedData;
   }
 }

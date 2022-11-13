@@ -15,6 +15,8 @@ import { DbModule } from './db/db.module';
 import { CronjobsModule } from './cronjobs/cronjobs.module';
 import { UserModule } from './user/user.module';
 import { TimesModule } from './times/times.module';
+import { NotifModule } from './notif/notif.module';
+import { MessengerModule } from './messenger/messenger.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { TimesModule } from './times/times.module';
     CronjobsModule,
     UserModule,
     TimesModule,
+    NotifModule,
+    MessengerModule,
   ],
 
   controllers: [AppController],

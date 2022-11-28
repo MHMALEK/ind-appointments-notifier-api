@@ -34,50 +34,53 @@ export class AppointmentsService {
   }
 
   private generateHttpRequest(payload = defaultINDAPIPayload) {
+    console.log('asda', this.queryBuilderService.generateQuery(payload));
     return this.httpService.get(
       this.queryBuilderService.generateQuery(payload),
     );
   }
 
-  requestAppointments(payload) {
-    return this.generateHttpRequest(payload).pipe(
-      map((response) => response.data),
+  async requestAppointments(payload) {
+    return firstValueFrom(this.generateHttpRequest(payload)).then(
+      (response) => response.data,
       catchError(() => {
         throw new HttpException('something went wrong', 500);
       }),
     );
   }
 
-  findAll(payload) {
-    return firstValueFrom(this.requestAppointments(payload)).then(
-      (response) => {
-        const data = this.transformData(response as unknown as string);
-        if (data.status === 'OK') {
-          return data.data;
-        } else {
-          throw new HttpException('can not find any time', 500);
-        }
-      },
-    );
+  async findAll(payload) {
+    const response = await this.requestAppointments(payload);
+
+    if (response) {
+      const data = this.transformData(response as unknown as string);
+      if (data.status === 'OK') {
+        return data.data;
+      } else {
+        throw new HttpException('can not find any time', 500);
+      }
+    }
   }
 
-  findSoonest(payload) {
-    return firstValueFrom(this.requestAppointments(payload)).then(
-      (response) => {
-        const data = this.transformData(response as unknown as string);
-        if (data.status === 'OK') {
-          return this.getSoonestSlot(data.data);
-        } else {
-          throw new HttpException('can not find any time', 500);
-        }
-      },
-    );
+  async findSoonest(payload) {
+    const response = await this.requestAppointments(payload);
+
+    if (response) {
+      const data = this.transformData(response as unknown as string);
+      if (data.status === 'OK') {
+        return this.getSoonestSlot(data.data);
+      } else {
+        throw new HttpException('can not find any time', 500);
+      }
+    }
   }
 
-  findAppointmentCompareToTime(payload, params) {
-    return firstValueFrom(this.requestAppointments(payload))
-      .then((respnse) => {
-        const data = this.transformData(respnse.data as unknown as string);
+  async findAppointmentCompareToTime(payload, params) {
+    try {
+      const response = await this.requestAppointments(payload);
+
+      if (response) {
+        const data = this.transformData(response.data as unknown as string);
         if (data.status === 'OK') {
           try {
             const soonestSlots = data.data.filter(({ date }) =>
@@ -93,10 +96,10 @@ export class AppointmentsService {
         } else {
           throw new HttpException('can not find any time', 500);
         }
-      })
-      .catch((e) => {
-        throw new HttpException('can not find any time', 500);
-      });
+      }
+    } catch (e) {
+      throw new HttpException('can not find any time', 500);
+    }
   }
 
   async saveToDB(dbName, data) {

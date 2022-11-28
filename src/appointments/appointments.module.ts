@@ -10,6 +10,7 @@ import { TimesModule } from 'src/times/times.module';
 import { TimesService } from 'src/times/times.service';
 import { CronjobsModule } from 'src/cronjobs/cronjobs.module';
 import { CronjobsService } from 'src/cronjobs/cronjobs.service';
+import { MessengerService } from 'src/messenger/messenger.service';
 
 @Module({
   providers: [
@@ -19,6 +20,7 @@ import { CronjobsService } from 'src/cronjobs/cronjobs.service';
     DbService,
     TimesService,
     CronjobsService,
+    MessengerService,
   ],
   imports: [HttpModule, DbModule, TimesModule],
   controllers: [AppointmentsController],

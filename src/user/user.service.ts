@@ -19,7 +19,7 @@ export class UserService {
       .then((item) => item)
       .catch(() => new HttpException('error save in DB', 500));
   }
-  private async isUserExist(telegramId) {
+  public async isUserExist(telegramId) {
     return await this.userModel.findOne({ telegramId });
   }
   async saveUserLatestTime({ telegramId, date }) {

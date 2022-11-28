@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import {
+  NotifierAppoinment,
+  NotifierAppoinmentDocument,
+} from 'src/new-appointment-notifier/schemas/appointmentNotifier.schema';
 import { Time, TimeDocument } from 'src/user/schemas/time.schema';
 
 @Injectable()
@@ -8,6 +12,8 @@ export class TimesService {
   constructor(
     @InjectModel(Time.name)
     private timeModel: Model<TimeDocument>,
+    @InjectModel(NotifierAppoinment.name)
+    private notifyAppointmentModel: Model<NotifierAppoinmentDocument>,
   ) {}
   async findAndRemoveOutDatedRequest() {
     return this.timeModel
@@ -23,9 +29,20 @@ export class TimesService {
   async findUsersThatRequestedTimeIsSoonerThanLatestAvailabelTime(
     soonestAvailableTime,
   ) {
-    return await this.timeModel.find({
+    const result = await this.notifyAppointmentModel.find({
+      service: { $in: soonestAvailableTime.service },
       date: { $gte: soonestAvailableTime.date },
     });
+
+    if (result.length > 0) {
+      await this.timeModel
+        .find({
+          date: { $gte: soonestAvailableTime.date },
+        })
+        .remove();
+    }
+
+    return result;
   }
 
   private formatDate(date) {

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppointmentsService } from 'src/appointments/appointments.service';
+import { MessengerService } from 'src/messenger/messenger.service';
 import { TimesService } from 'src/times/times.service';
 import IND_DESKS from 'src/types/ind-desks';
 import IND_SERVICES from 'src/types/ind-services';
@@ -9,6 +10,7 @@ export class CronjobsService {
   constructor(
     private appointmentService: AppointmentsService,
     private timeServices: TimesService,
+    private messengerService: MessengerService,
   ) {}
   private readonly logger = new Logger(CronjobsService.name);
   //   @Cron(CronExpression.EVERY_30_SECONDS)
@@ -23,5 +25,14 @@ export class CronjobsService {
       await this.timeServices.findUsersThatRequestedTimeIsSoonerThanLatestAvailabelTime(
         soonestTime,
       );
+
+    if (usersHaveRequestedTimeSoonerThanLatestAvailabelTime.length > 0) {
+      usersHaveRequestedTimeSoonerThanLatestAvailabelTime.map((user) =>
+        this.messengerService.sendMessageToUser({
+          userId: user.telegramId,
+          message: this.messengerService.generateMessage(user.date),
+        }),
+      );
+    }
   }
 }

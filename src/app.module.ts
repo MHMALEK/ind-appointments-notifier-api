@@ -15,8 +15,9 @@ import { DbModule } from './db/db.module';
 import { CronjobsModule } from './cronjobs/cronjobs.module';
 import { UserModule } from './user/user.module';
 import { TimesModule } from './times/times.module';
-import { NotifModule } from './notif/notif.module';
 import { MessengerModule } from './messenger/messenger.module';
+import { NewAppointmentNotifierModule } from './new-appointment-notifier/new-appointment-notifier.module';
+import { IndContentModule } from './ind-content/ind-content.module';
 
 @Module({
   imports: [
@@ -33,8 +34,9 @@ import { MessengerModule } from './messenger/messenger.module';
     CronjobsModule,
     UserModule,
     TimesModule,
-    NotifModule,
     MessengerModule,
+    NewAppointmentNotifierModule,
+    IndContentModule,
   ],
 
   controllers: [AppController],

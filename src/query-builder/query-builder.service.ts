@@ -6,7 +6,7 @@ import IND_API_BASE_URL from './endpoints';
 export const defaultINDAPIPayload = {
   service: IND_SERVICES.COLLECT_DOCUMENTS,
   desk: IND_DESKS.AMSTERDAM,
-  numberOfPeople: 1,
+  numberOfPeople: '1',
 };
 
 @Injectable()

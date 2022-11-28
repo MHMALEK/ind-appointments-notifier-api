@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import {
+  NotifierAppoinment,
+  NotifierAppoinmentSchema,
+} from 'src/new-appointment-notifier/schemas/appointmentNotifier.schema';
 import { Time, TimeSchema } from 'src/user/schemas/time.schema';
 import { TimesService } from './times.service';
 
@@ -11,6 +15,7 @@ import { TimesService } from './times.service';
         name: Time.name,
         schema: TimeSchema,
       },
+      { name: NotifierAppoinment.name, schema: NotifierAppoinmentSchema },
     ]),
   ],
   exports: [
@@ -20,6 +25,7 @@ import { TimesService } from './times.service';
         name: Time.name,
         schema: TimeSchema,
       },
+      { name: NotifierAppoinment.name, schema: NotifierAppoinmentSchema },
     ]),
   ],
 })

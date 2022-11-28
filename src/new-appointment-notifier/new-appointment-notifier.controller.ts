@@ -31,7 +31,7 @@ export class NewAppointmentNotifierController {
   }
 
   @Get('/')
-  test() {
-    this.newAppointmentNotifierService.cronJobUpdateAppointmentsDatabase();
+  async findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot() {
+    await this.newAppointmentNotifierService.findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot();
   }
 }

@@ -5,9 +5,7 @@ import { Model } from 'mongoose';
 import { AppointmentsService } from 'src/appointments/appointments.service';
 import { IndContentService } from 'src/ind-content/ind-content.service';
 import { MessengerService } from 'src/messenger/messenger.service';
-import { TimesService } from 'src/times/times.service';
-import IND_DESKS from 'src/types/ind-desks';
-import IND_SERVICES from 'src/types/ind-services';
+import { defaultINDAPIPayload } from 'src/query-builder/query-builder.service';
 import { UserService } from 'src/user/user.service';
 import { CreatNewNotifierForSpeceficUserTimeDTO } from './dto/CreatNewNotifierForSpeceficUserTime.dto';
 import {
@@ -25,16 +23,15 @@ export class NewAppointmentNotifierService {
     private userService: UserService,
     private indContentService: IndContentService,
   ) {}
-  async cronJobUpdateAppointmentsDatabase() {
+  async findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot() {
     const { serviceTypes } =
       await this.indContentService.getIndContentFromCMS();
-    console.log('serviceTypes', serviceTypes);
-    serviceTypes.map(async ({ desks, service_code }) => {
+    const data = serviceTypes.map(async ({ desks, service_code }) => {
       desks.map(async (desk) => {
         const soonestAvailableTime = await this.appointmentService.findSoonest({
           desk: desk.code,
           service: service_code,
-          numberOfPeople: '1',
+          numberOfPeople: defaultINDAPIPayload,
         });
 
         if (soonestAvailableTime) {
@@ -45,21 +42,31 @@ export class NewAppointmentNotifierService {
           });
 
           if (users.length > 0) {
-            users.map((user) => {
-              const notificationPayload = {
-                date: soonestAvailableTime.date,
-                telegramId: user.telegramId,
-                service: user.service,
-              };
-              this.handleNotification(notificationPayload);
-            });
+            this.sendNotificationToUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot(
+              users,
+              soonestAvailableTime,
+            );
           }
         }
-
-        return soonestAvailableTime;
       });
     });
+    return data;
   }
+
+  sendNotificationToUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot(
+    users,
+    soonestAvailableTime,
+  ) {
+    users.map((user) => {
+      const notificationPayload = {
+        date: soonestAvailableTime.date,
+        telegramId: user.telegramId,
+        service: user.service,
+      };
+      this.handleNotification(notificationPayload);
+    });
+  }
+
   async saveNewNotifierRequestFromUserSelectedTimeAndService(
     payload: CreatNewNotifierForSpeceficUserTimeDTO,
   ) {

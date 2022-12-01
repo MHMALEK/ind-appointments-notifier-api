@@ -9,7 +9,9 @@ describe('NewAppointmentNotifierController', () => {
       controllers: [NewAppointmentNotifierController],
     }).compile();
 
-    controller = module.get<NewAppointmentNotifierController>(NewAppointmentNotifierController);
+    controller = module.get<NewAppointmentNotifierController>(
+      NewAppointmentNotifierController,
+    );
   });
 
   it('should be defined', () => {

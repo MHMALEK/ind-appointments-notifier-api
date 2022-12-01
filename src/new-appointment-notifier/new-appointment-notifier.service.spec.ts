@@ -9,7 +9,9 @@ describe('NewAppointmentNotifierService', () => {
       providers: [NewAppointmentNotifierService],
     }).compile();
 
-    service = module.get<NewAppointmentNotifierService>(NewAppointmentNotifierService);
+    service = module.get<NewAppointmentNotifierService>(
+      NewAppointmentNotifierService,
+    );
   });
 
   it('should be defined', () => {

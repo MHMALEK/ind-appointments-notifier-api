@@ -5,7 +5,7 @@ export type TimeDocument = HydratedDocument<Time>;
 
 @Schema()
 export class Time {
-  @Prop({ unique: true, required: true })
+  @Prop()
   telegramId: string;
   @Prop()
   date: string;

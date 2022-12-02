@@ -9,7 +9,7 @@ export class NewAppointmentNotifierController {
     private newAppointmentNotifierService: NewAppointmentNotifierService,
   ) {}
   @Post('/')
-  CreatNewNotifierForRequestedTime(
+  async CreatNewNotifierForRequestedTime(
     @Body() body: CreatNewNotifierForSpeceficUserTimeDTO,
   ) {
     const {
@@ -19,19 +19,25 @@ export class NewAppointmentNotifierController {
       desk,
       numberOfPeople = defaultINDAPIPayload.numberOfPeople,
     } = body;
-    this.newAppointmentNotifierService.saveNewNotifierRequestFromUserSelectedTimeAndService(
-      {
-        telegramId,
-        date,
-        service,
-        desk,
-        numberOfPeople,
-      },
-    );
+
+    console.log('bodybodybodybodybody', body);
+    const res =
+      await this.newAppointmentNotifierService.saveNewNotifierRequestFromUserSelectedTimeAndService(
+        {
+          telegramId,
+          date,
+          service,
+          desk,
+          numberOfPeople,
+        },
+      );
+    return res;
   }
 
   @Get('/')
   async findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot() {
-    await this.newAppointmentNotifierService.findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot();
+    const res =
+      await this.newAppointmentNotifierService.findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot();
+    return 'succes';
   }
 }

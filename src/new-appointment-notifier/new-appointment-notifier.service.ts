@@ -26,17 +26,21 @@ export class NewAppointmentNotifierService {
   async findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot() {
     const { serviceTypes } =
       await this.indContentService.getIndContentFromCMS();
-    const data = serviceTypes.map(async ({ desks, service_code }) => {
+    // console.log('serviceTypes', serviceTypes);
+    const data = Object.values(serviceTypes).map(async ({ desks, code }) => {
+      console.log('123123', desks, code);
       desks.map(async (desk) => {
         const soonestAvailableTime = await this.appointmentService.findSoonest({
           desk: desk.code,
-          service: service_code,
-          numberOfPeople: defaultINDAPIPayload,
+          service: code,
+          numberOfPeople: defaultINDAPIPayload.numberOfPeople,
         });
+
+        console.log(desks, code, desk);
 
         if (soonestAvailableTime) {
           const users = await this.notifierAppoinmentModel.find({
-            service: service_code,
+            service: code,
             desk: desk.code,
             date: { $gte: soonestAvailableTime.date },
           });
@@ -76,23 +80,34 @@ export class NewAppointmentNotifierService {
     if (!isUserExist) {
       throw new HttpException('user does not exist', 404);
     }
+
+    console.log('isUserExist isUserExist isUserExist', isUserExist);
+
     const alreadyRequestedTime = await this.notifierAppoinmentModel.findOne({
       telegramId,
-      service,
     });
 
     if (alreadyRequestedTime) {
-      return await this.notifierAppoinmentModel.updateOne(
+      const res = await this.notifierAppoinmentModel.updateOne(
         { telegramId },
-        { payload },
+        { ...payload },
       );
+      return await this.notifierAppoinmentModel.findOne({
+        telegramId,
+      });
     }
     const dataToSave = new this.notifierAppoinmentModel(payload);
 
     await dataToSave
       .save()
-      .then((item) => item)
-      .catch((e) => new HttpException(e, 500));
+      .then((item) => {
+        console.log('item', item);
+        return item;
+      })
+      .catch((e) => {
+        console.log('saddasdasd', e);
+        new HttpException(e, 500);
+      });
   }
 
   async handleNotification(payload) {

@@ -7,7 +7,7 @@ export type NotifierAppoinmentDocument = HydratedDocument<NotifierAppoinment>;
 
 @Schema()
 export class NotifierAppoinment {
-  @Prop({ unique: true, required: true })
+  @Prop()
   telegramId: string;
   @Prop()
   date: string;

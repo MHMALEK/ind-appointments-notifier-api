@@ -5,7 +5,7 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {
-  @Prop({ unique: true, required: true })
+  @Prop()
   telegramId: string;
 }
 

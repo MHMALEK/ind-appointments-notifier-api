@@ -20,7 +20,6 @@ export class NewAppointmentNotifierController {
       numberOfPeople = defaultINDAPIPayload.numberOfPeople,
     } = body;
 
-    console.log('bodybodybodybodybody', body);
     const res =
       await this.newAppointmentNotifierService.saveNewNotifierRequestFromUserSelectedTimeAndService(
         {

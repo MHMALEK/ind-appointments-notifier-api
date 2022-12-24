@@ -7,12 +7,7 @@ import { TimesService } from 'src/times/times.service';
 
 @Injectable()
 export class CronjobsService {
-  constructor(
-    private appointmentService: AppointmentsService,
-    private timeServices: TimesService,
-    private messengerService: MessengerService,
-    private notifierService: NewAppointmentNotifierService,
-  ) {}
+  constructor(private notifierService: NewAppointmentNotifierService) {}
   private readonly logger = new Logger(CronjobsService.name);
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)

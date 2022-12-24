@@ -75,14 +75,6 @@ export class NewAppointmentNotifierService {
   ) {
     const { telegramId, service } = payload;
     console.log('telegramId', telegramId);
-    // const isUserExist = await this.userService.isUserExist(telegramId);
-
-    // if (!isUserExist) {
-    // throw new HttpException('user does not exist', 404);
-    // user didn't exist
-    // }
-
-    // console.log('isUserExist isUserExist isUserExist', isUserExist);
 
     const alreadyRequestedTime = await this.notifierAppoinmentModel.findOne({
       telegramId,

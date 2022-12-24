@@ -18,11 +18,13 @@ import { TimesModule } from './times/times.module';
 import { MessengerModule } from './messenger/messenger.module';
 import { NewAppointmentNotifierModule } from './new-appointment-notifier/new-appointment-notifier.module';
 import { IndContentModule } from './ind-content/ind-content.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     HttpModule,
     TimeCompareModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     MongooseModule.forRoot(
       'mongodb+srv://vfs-data-base-user:Ka723wQHWtwQXf7A@cluster0.uqiqnc2.mongodb.net/?retryWrites=true&w=majority',

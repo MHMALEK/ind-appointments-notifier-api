@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, Post } from '@nestjs/common';
 import { defaultINDAPIPayload } from 'src/query-builder/query-builder.service';
 import { CreatNewNotifierForSpeceficUserTimeDTO } from './dto/CreatNewNotifierForSpeceficUserTime.dto';
 import { NewAppointmentNotifierService } from './new-appointment-notifier.service';
@@ -20,17 +20,23 @@ export class NewAppointmentNotifierController {
       numberOfPeople = defaultINDAPIPayload.numberOfPeople,
     } = body;
 
-    const res =
-      await this.newAppointmentNotifierService.saveNewNotifierRequestFromUserSelectedTimeAndService(
-        {
-          telegramId,
-          date,
-          service,
-          desk,
-          numberOfPeople,
-        },
-      );
-    return res;
+    console.log(telegramId, date, service, desk);
+
+    try {
+      const res =
+        await this.newAppointmentNotifierService.saveNewNotifierRequestFromUserSelectedTimeAndService(
+          {
+            telegramId,
+            date,
+            service,
+            desk,
+            numberOfPeople,
+          },
+        );
+      return res;
+    } catch (e) {
+      throw new HttpException('Something went wrong', 500);
+    }
   }
 
   @Get('/')

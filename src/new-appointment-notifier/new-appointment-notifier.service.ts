@@ -24,36 +24,43 @@ export class NewAppointmentNotifierService {
     private indContentService: IndContentService,
   ) {}
   async findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot() {
-    const { serviceTypes } =
+    const { servicesByDesks } =
       await this.indContentService.getIndContentFromCMS();
-    // console.log('serviceTypes', serviceTypes);
-    const data = Object.values(serviceTypes).map(async ({ desks, code }) => {
-      console.log('123123', desks, code);
-      desks.map(async (desk) => {
-        const soonestAvailableTime = await this.appointmentService.findSoonest({
-          desk: desk.code,
-          service: code,
-          numberOfPeople: defaultINDAPIPayload.numberOfPeople,
-        });
+    const data = Object.values(servicesByDesks).map(
+      async ({ desks, code }: any) => {
+        desks.map(async (desk) => {
+          const soonestAvailableTime =
+            await this.appointmentService.findSoonest({
+              desk: desk.code,
+              service: code,
+              numberOfPeople: defaultINDAPIPayload.numberOfPeople,
+            });
 
-        console.log(desks, code, desk);
+          // console.log(desks, code, desk);
 
-        if (soonestAvailableTime) {
-          const users = await this.notifierAppoinmentModel.find({
-            service: code,
-            desk: desk.code,
-            date: { $gte: soonestAvailableTime.date },
-          });
+          if (soonestAvailableTime) {
+            // console.log(
+            //   'soonestAvailableTime',
+            //   soonestAvailableTime,
+            //   desk.code,
+            //   code,
+            // );
+            const users = await this.notifierAppoinmentModel.find({
+              service: code,
+              desk: desk.code,
+              date: { $gte: soonestAvailableTime.date },
+            });
 
-          if (users.length > 0) {
-            this.sendNotificationToUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot(
-              users,
-              soonestAvailableTime,
-            );
+            if (users.length > 0) {
+              this.sendNotificationToUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot(
+                users,
+                soonestAvailableTime,
+              );
+            }
           }
-        }
-      });
-    });
+        });
+      },
+    );
     return data;
   }
 
@@ -75,13 +82,15 @@ export class NewAppointmentNotifierService {
     payload: CreatNewNotifierForSpeceficUserTimeDTO,
   ) {
     const { telegramId, service } = payload;
+    console.log('telegramId', telegramId);
     const isUserExist = await this.userService.isUserExist(telegramId);
 
     if (!isUserExist) {
-      throw new HttpException('user does not exist', 404);
+      // throw new HttpException('user does not exist', 404);
+      // user didn't exist
     }
 
-    console.log('isUserExist isUserExist isUserExist', isUserExist);
+    // console.log('isUserExist isUserExist isUserExist', isUserExist);
 
     const alreadyRequestedTime = await this.notifierAppoinmentModel.findOne({
       telegramId,
@@ -111,6 +120,7 @@ export class NewAppointmentNotifierService {
   }
 
   async handleNotification(payload) {
+    console.log('payload', payload);
     this.messengerService.sendMessageToUser(payload);
   }
 }

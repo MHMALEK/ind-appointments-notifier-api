@@ -1,20 +1,25 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { firstValueFrom } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const contentful = require('contentful');
 
 @Injectable()
 export class IndContentService {
-  baseUrl = 'http://localhost:3000';
-  constructor(private http: HttpService) {}
+  client: any;
+  constructor(private configService: ConfigService) {
+    console.log('asd');
+    this.client = contentful.createClient({
+      space: this.configService.get<string>('IND_CONTENT_API_SPACE'),
+      accessToken: this.configService.get<string>('IND_CONTENT_API_TOKEN'),
+    });
+  }
   async getIndContentFromCMS() {
-    const res: any = await firstValueFrom(
-      this.http.get(`${this.baseUrl}/data`),
-    );
-    if (res) {
-      return {
-        serviceTypes: res.data.servicesByDesks,
-        desks: res.data.desks,
-      };
+    try {
+      const res = await this.client.getEntry('4XKP5Yd9oV0devAyvEopZl');
+      return (res.fields as any).indData.data;
+    } catch (e) {
+      console.log(e);
     }
   }
 }

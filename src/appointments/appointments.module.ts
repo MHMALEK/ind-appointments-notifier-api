@@ -11,6 +11,9 @@ import { TimesService } from 'src/times/times.service';
 import { CronjobsModule } from 'src/cronjobs/cronjobs.module';
 import { CronjobsService } from 'src/cronjobs/cronjobs.service';
 import { MessengerService } from 'src/messenger/messenger.service';
+import { NewAppointmentNotifierService } from 'src/new-appointment-notifier/new-appointment-notifier.service';
+import { NewAppointmentNotifierModule } from 'src/new-appointment-notifier/new-appointment-notifier.module';
+import { IndContentService } from 'src/ind-content/ind-content.service';
 
 @Module({
   providers: [
@@ -21,6 +24,8 @@ import { MessengerService } from 'src/messenger/messenger.service';
     TimesService,
     CronjobsService,
     MessengerService,
+    NewAppointmentNotifierService,
+    IndContentService,
   ],
   imports: [HttpModule, DbModule, TimesModule],
   controllers: [AppointmentsController],

@@ -1,5 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 
 import { AppointmentsService } from 'src/appointments/appointments.service';
@@ -20,9 +21,9 @@ export class NewAppointmentNotifierService {
     private messengerService: MessengerService,
     @InjectModel(NotifierAppoinment.name)
     private notifierAppoinmentModel: Model<NotifierAppoinmentDocument>,
-    private userService: UserService,
     private indContentService: IndContentService,
   ) {}
+
   async findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot() {
     const { servicesByDesks } =
       await this.indContentService.getIndContentFromCMS();
@@ -35,16 +36,7 @@ export class NewAppointmentNotifierService {
               service: code,
               numberOfPeople: defaultINDAPIPayload.numberOfPeople,
             });
-
-          // console.log(desks, code, desk);
-
           if (soonestAvailableTime) {
-            // console.log(
-            //   'soonestAvailableTime',
-            //   soonestAvailableTime,
-            //   desk.code,
-            //   code,
-            // );
             const users = await this.notifierAppoinmentModel.find({
               service: code,
               desk: desk.code,
@@ -83,12 +75,12 @@ export class NewAppointmentNotifierService {
   ) {
     const { telegramId, service } = payload;
     console.log('telegramId', telegramId);
-    const isUserExist = await this.userService.isUserExist(telegramId);
+    // const isUserExist = await this.userService.isUserExist(telegramId);
 
-    if (!isUserExist) {
-      // throw new HttpException('user does not exist', 404);
-      // user didn't exist
-    }
+    // if (!isUserExist) {
+    // throw new HttpException('user does not exist', 404);
+    // user didn't exist
+    // }
 
     // console.log('isUserExist isUserExist isUserExist', isUserExist);
 
@@ -120,7 +112,6 @@ export class NewAppointmentNotifierService {
   }
 
   async handleNotification(payload) {
-    console.log('payload', payload);
     this.messengerService.sendMessageToUser(payload);
   }
 }

@@ -7,8 +7,8 @@ export class UserController {
   constructor(private userService: UserService) {}
   @Get('new/:telegramId')
   saveNewUser(@Param() telgramId: string) {
-    const item = this.userService.saveUserToDatabase(telgramId);
-    return item;
+    // const item = this.userService.saveUserToDatabase(telgramId);
+    // return item;
   }
 
   @Get('time')

@@ -39,5 +39,6 @@ import {
       },
     ]),
   ],
+  exports: [NewAppointmentNotifierService],
 })
 export class NewAppointmentNotifierModule {}

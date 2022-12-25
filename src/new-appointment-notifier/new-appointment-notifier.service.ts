@@ -106,4 +106,12 @@ export class NewAppointmentNotifierService {
   async handleNotification(payload) {
     this.messengerService.sendMessageToUser(payload);
   }
+
+  async sendTestMessage() {
+    this.messengerService.sendMessageToUser({
+      date: 'date',
+      telegramId: 1949747267,
+      service: 'doc',
+    });
+  }
 }

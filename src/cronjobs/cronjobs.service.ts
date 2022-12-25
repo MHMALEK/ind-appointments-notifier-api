@@ -32,6 +32,12 @@ export class CronjobsService {
     // }
   }
 
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async cronjobSendMessageTest() {
+    this.logger.debug('test cron job on digital ocean');
+    this.notifierService.sendTestMessage();
+  }
+
   @Cron(CronExpression.EVERY_2_HOURS)
   async cronJobfindUsersThatHasRequestedASlot() {
     this.logger.debug('find users');

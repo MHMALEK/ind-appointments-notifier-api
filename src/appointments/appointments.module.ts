@@ -8,11 +8,8 @@ import { DbService } from 'src/db/db.service';
 import { DbModule } from 'src/db/db.module';
 import { TimesModule } from 'src/times/times.module';
 import { TimesService } from 'src/times/times.service';
-import { CronjobsModule } from 'src/cronjobs/cronjobs.module';
-import { CronjobsService } from 'src/cronjobs/cronjobs.service';
 import { MessengerService } from 'src/messenger/messenger.service';
 import { NewAppointmentNotifierService } from 'src/new-appointment-notifier/new-appointment-notifier.service';
-import { NewAppointmentNotifierModule } from 'src/new-appointment-notifier/new-appointment-notifier.module';
 import { IndContentService } from 'src/ind-content/ind-content.service';
 
 @Module({
@@ -22,7 +19,6 @@ import { IndContentService } from 'src/ind-content/ind-content.service';
     QueryBuilderService,
     DbService,
     TimesService,
-    CronjobsService,
     MessengerService,
     NewAppointmentNotifierService,
     IndContentService,

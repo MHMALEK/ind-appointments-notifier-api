@@ -25,7 +25,6 @@ export class MessengerService {
     );
   }
   sendMessageToUser(payload) {
-    console.log('payload', payload);
     const { date, telegramId, service } = payload;
     this.sendTelegramMessage({
       telegramId,
@@ -33,8 +32,23 @@ export class MessengerService {
     });
   }
   generateMessage(payload) {
-    return `There is a new slot is available for ${IND_SERVICES_LABELS[
+    return `Hooray! There is a new slot is available for ${IND_SERVICES_LABELS[
       payload.service
     ].toLowerCase()} on this time: ${payload.date}`;
+  }
+
+  sendExpiredRequestMessageToUser(payload) {
+    const { date, telegramId, service } = payload;
+    this.sendTelegramMessage({
+      telegramId,
+      message: this.generateExpiredRequestMessage({ date, service }),
+    });
+  }
+  generateExpiredRequestMessage(payload) {
+    return `Your request for ${IND_SERVICES_LABELS[
+      payload.service
+    ].toLowerCase()} on this time: ${
+      payload.date
+    } has been expired. you can create a new one.`;
   }
 }

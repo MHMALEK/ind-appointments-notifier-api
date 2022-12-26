@@ -1,13 +1,12 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model } from 'mongoose';
+import { format } from 'date-fns';
 
 import { AppointmentsService } from 'src/appointments/appointments.service';
 import { IndContentService } from 'src/ind-content/ind-content.service';
 import { MessengerService } from 'src/messenger/messenger.service';
 import { defaultINDAPIPayload } from 'src/query-builder/query-builder.service';
-import { UserService } from 'src/user/user.service';
 import { CreatNewNotifierForSpeceficUserTimeDTO } from './dto/CreatNewNotifierForSpeceficUserTime.dto';
 import {
   NotifierAppoinment,
@@ -56,6 +55,32 @@ export class NewAppointmentNotifierService {
     return data;
   }
 
+  async updateDataBaseAndRemoveOutdatedRequests() {
+    const today = format(new Date(), 'dd-MM-yyy');
+
+    const users = await this.notifierAppoinmentModel.find({
+      date: { $lte: today },
+    });
+
+    if (users.length > 0) {
+      users.map((user) => {
+        const notificationPayload = {
+          date: user.date,
+          telegramId: user.telegramId,
+          service: user.service,
+        };
+        console.log('notificationPayload', notificationPayload);
+        this.handleNotificationForExpiredRequest(notificationPayload);
+        this.removeExpiredRequestsFromDB();
+      });
+    }
+  }
+
+  async removeExpiredRequestsFromDB() {
+    const today = format(new Date(), 'dd-MM-yyy');
+    await this.notifierAppoinmentModel.remove({ date: { $lte: today } });
+  }
+
   sendNotificationToUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot(
     users,
     soonestAvailableTime,
@@ -73,7 +98,7 @@ export class NewAppointmentNotifierService {
   async saveNewNotifierRequestFromUserSelectedTimeAndService(
     payload: CreatNewNotifierForSpeceficUserTimeDTO,
   ) {
-    const { telegramId, service } = payload;
+    const { telegramId } = payload;
     console.log('telegramId', telegramId);
 
     const alreadyRequestedTime = await this.notifierAppoinmentModel.findOne({
@@ -105,6 +130,10 @@ export class NewAppointmentNotifierService {
 
   async handleNotification(payload) {
     this.messengerService.sendMessageToUser(payload);
+  }
+
+  async handleNotificationForExpiredRequest(payload) {
+    this.messengerService.sendExpiredRequestMessageToUser(payload);
   }
 
   async sendTestMessage() {

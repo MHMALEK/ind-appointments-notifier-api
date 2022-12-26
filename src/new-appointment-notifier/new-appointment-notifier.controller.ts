@@ -42,7 +42,7 @@ export class NewAppointmentNotifierController {
   @Get('/')
   async findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot() {
     try {
-      await this.newAppointmentNotifierService.findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot();
+      await this.newAppointmentNotifierService.updateDataBaseAndRemoveOutdatedRequests();
       return 'succes';
     } catch (e) {
       throw new HttpException('Something went wrong', 500);

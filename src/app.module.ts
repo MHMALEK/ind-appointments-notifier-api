@@ -12,7 +12,6 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { QueryBuilderModule } from './query-builder/query-builder.module';
 import { QueryBuilderService } from './query-builder/query-builder.service';
 import { DbModule } from './db/db.module';
-import { CronjobsModule } from './cronjobs/cronjobs.module';
 import { UserModule } from './user/user.module';
 import { TimesModule } from './times/times.module';
 import { MessengerModule } from './messenger/messenger.module';
@@ -33,7 +32,6 @@ import { ConfigModule } from '@nestjs/config';
     AppointmentsModule,
     QueryBuilderModule,
     DbModule,
-    CronjobsModule,
     UserModule,
     TimesModule,
     MessengerModule,

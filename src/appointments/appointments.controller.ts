@@ -7,8 +7,7 @@ import { GetSoonestAppointmentDTO } from './DTO/getSoonestAppointment.dto';
 @Controller('appointments')
 export class AppointmentsController {
   constructor(
-    private appointmentService: AppointmentsService,
-    private cronjobsService: CronjobsService,
+    private appointmentService: AppointmentsService, // private cronjobsService: CronjobsService,
   ) {}
   @Get('all')
   getAllAppointments() {
@@ -22,7 +21,7 @@ export class AppointmentsController {
 
   @Get('test')
   async test() {
-    return await this.cronjobsService.cronJobUpdateAppointmentsDatabase();
+    // return await this.cronjobsService.cronJobUpdateAppointmentsDatabase();
   }
 
   @Get('soonest')

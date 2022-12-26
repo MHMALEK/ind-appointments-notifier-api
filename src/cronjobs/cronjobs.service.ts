@@ -32,15 +32,22 @@ export class CronjobsService {
     // }
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
-  async cronjobSendMessageTest() {
-    this.logger.debug('test cron job on digital ocean');
-    this.notifierService.sendTestMessage();
-  }
+  // @Cron(CronExpression.EVERY_10_SECONDS)
+  // async cronjobSendMessageTest() {
+  //   this.logger.debug('test cron job on digital ocean');
+  //   console.log('malek');
+  //   // this.notifierService.sendTestMessage();
+  // }
 
   @Cron(CronExpression.EVERY_2_HOURS)
   async cronJobfindUsersThatHasRequestedASlot() {
     this.logger.debug('find users');
     this.notifierService.findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot();
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  async cronJobfindUsersWithExpiredRequestsAndDeleteThemFromDB() {
+    this.logger.debug('find users');
+    this.notifierService.updateDataBaseAndRemoveOutdatedRequests();
   }
 }

@@ -7,7 +7,10 @@ import { AppointmentsService } from 'src/appointments/appointments.service';
 import { IndContentService } from 'src/ind-content/ind-content.service';
 import { MessengerService } from 'src/messenger/messenger.service';
 import { defaultINDAPIPayload } from 'src/query-builder/query-builder.service';
-import { CreatNewNotifierForSpeceficUserTimeDTO } from './dto/CreatNewNotifierForSpeceficUserTime.dto';
+import {
+  CreatNewNotifierForSpeceficUserTimeDTO,
+  CreatNewNotifierForSpeceficUserTimeViaEmailDTO,
+} from './dto/CreatNewNotifierForSpeceficUserTime.dto';
 import {
   NotifierAppoinment,
   NotifierAppoinmentDocument,
@@ -68,8 +71,8 @@ export class NewAppointmentNotifierService {
           date: user.date,
           telegramId: user.telegramId,
           service: user.service,
+          email: user.email,
         };
-        console.log('notificationPayload', notificationPayload);
         this.handleNotificationForExpiredRequest(notificationPayload);
         this.removeExpiredRequestsFromDB();
       });
@@ -90,28 +93,33 @@ export class NewAppointmentNotifierService {
         date: soonestAvailableTime.date,
         telegramId: user.telegramId,
         service: user.service,
+        email: user.email,
       };
       this.handleNotification(notificationPayload);
     });
   }
 
   async saveNewNotifierRequestFromUserSelectedTimeAndService(
-    payload: CreatNewNotifierForSpeceficUserTimeDTO,
+    payload:
+      | CreatNewNotifierForSpeceficUserTimeDTO
+      | CreatNewNotifierForSpeceficUserTimeViaEmailDTO,
   ) {
-    const { telegramId } = payload;
-    console.log('telegramId', telegramId);
+    const { telegramId, email } = payload;
 
     const alreadyRequestedTime = await this.notifierAppoinmentModel.findOne({
       telegramId,
+      email,
     });
 
     if (alreadyRequestedTime) {
       const res = await this.notifierAppoinmentModel.updateOne(
         { telegramId },
+        { email },
         { ...payload },
       );
       return await this.notifierAppoinmentModel.findOne({
         telegramId,
+        email,
       });
     }
     const dataToSave = new this.notifierAppoinmentModel(payload);

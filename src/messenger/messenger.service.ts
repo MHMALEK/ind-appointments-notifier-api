@@ -7,6 +7,7 @@ import { IND_SERVICES_LABELS } from 'src/types/ind-services';
 export const defaultMesasgePayload = {
   telegramId: 1949747267,
   message: 'you have a new message',
+  email: 'mhos.malek@gmail.com',
 };
 @Injectable()
 export class MessengerService {
@@ -15,21 +16,42 @@ export class MessengerService {
     private configService: ConfigService,
   ) {}
 
-  private async sendTelegramMessage(payload = defaultMesasgePayload) {
+  private async sendTelegramMessage(payload) {
     await firstValueFrom(
       this.httpService.get(
-        `${this.configService.get('IND_BOT_BASE_API')}/telegram/send?chatId=${
-          payload.telegramId
+        `${this.configService.get(
+          'MESSENGER_APP_BASE_API',
+        )}/telegram/send?chatId=${payload.telegramId}&message=${
+          payload.message
+        }`,
+      ),
+    );
+  }
+
+  private async sendEmailMessage(payload) {
+    await firstValueFrom(
+      this.httpService.get(
+        `${this.configService.get('MESSENGER_APP_BASE_API')}/email/send?email=${
+          payload.email
         }&message=${payload.message}`,
       ),
     );
   }
   sendMessageToUser(payload) {
-    const { date, telegramId, service } = payload;
-    this.sendTelegramMessage({
-      telegramId,
-      message: this.generateMessage({ date, service }),
-    });
+    const { date, telegramId, service, email } = payload;
+
+    if (telegramId) {
+      this.sendTelegramMessage({
+        telegramId,
+        message: this.generateMessage({ date, service }),
+      });
+    }
+    if (email) {
+      this.sendEmailMessage({
+        email,
+        message: this.generateMessage({ date, service }),
+      });
+    }
   }
   generateMessage(payload) {
     return `Hooray! There is a new slot is available for ${IND_SERVICES_LABELS[
@@ -38,12 +60,21 @@ export class MessengerService {
   }
 
   sendExpiredRequestMessageToUser(payload) {
-    const { date, telegramId, service } = payload;
-    this.sendTelegramMessage({
-      telegramId,
-      message: this.generateExpiredRequestMessage({ date, service }),
-    });
+    const { date, telegramId, service, email } = payload;
+    if (telegramId) {
+      this.sendTelegramMessage({
+        telegramId,
+        message: this.generateExpiredRequestMessage({ date, service }),
+      });
+    }
+    if (email) {
+      this.sendEmailMessage({
+        email,
+        message: this.generateExpiredRequestMessage({ date, service }),
+      });
+    }
   }
+
   generateExpiredRequestMessage(payload) {
     return `Your request for ${IND_SERVICES_LABELS[
       payload.service

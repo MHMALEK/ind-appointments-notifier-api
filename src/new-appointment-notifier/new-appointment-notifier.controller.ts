@@ -1,6 +1,9 @@
 import { Body, Controller, Get, HttpException, Post } from '@nestjs/common';
 import { defaultINDAPIPayload } from 'src/query-builder/query-builder.service';
-import { CreatNewNotifierForSpeceficUserTimeDTO } from './dto/CreatNewNotifierForSpeceficUserTime.dto';
+import {
+  CreatNewNotifierForSpeceficUserTimeDTO,
+  CreatNewNotifierForSpeceficUserTimeViaEmailDTO,
+} from './dto/CreatNewNotifierForSpeceficUserTime.dto';
 import { NewAppointmentNotifierService } from './new-appointment-notifier.service';
 
 @Controller('new-appointment-notifier')
@@ -26,7 +29,40 @@ export class NewAppointmentNotifierController {
       const res =
         await this.newAppointmentNotifierService.saveNewNotifierRequestFromUserSelectedTimeAndService(
           {
+            email: null,
             telegramId,
+            date,
+            service,
+            desk,
+            numberOfPeople,
+          },
+        );
+      return res;
+    } catch (e) {
+      throw new HttpException('Something went wrong', 500);
+    }
+  }
+
+  @Post('/email')
+  async CreatNewNotifierForRequestedTimeViaEmail(
+    @Body() body: CreatNewNotifierForSpeceficUserTimeViaEmailDTO,
+  ) {
+    const {
+      email,
+      date,
+      service,
+      desk,
+      numberOfPeople = defaultINDAPIPayload.numberOfPeople,
+    } = body;
+
+    console.log(email, date, service, desk);
+
+    try {
+      const res =
+        await this.newAppointmentNotifierService.saveNewNotifierRequestFromUserSelectedTimeAndService(
+          {
+            telegramId: null,
+            email: email,
             date,
             service,
             desk,

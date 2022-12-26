@@ -17,6 +17,8 @@ export class NotifierAppoinment {
   desk: IND_DESKS;
   @Prop()
   numberOfPeople: string;
+  @Prop()
+  email: string;
 }
 
 export const NotifierAppoinmentSchema =

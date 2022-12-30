@@ -31,7 +31,7 @@ export class MessengerService {
   private async sendEmailMessage(payload) {
     await firstValueFrom(
       this.httpService.get(
-        `${this.configService.get('MESSENGER_APP_BASE_API')}/email/send?to=${
+        `${this.configService.get('MESSENGER_APP_BASE_API')}/mail/send?to=${
           payload.email
         }&text=${payload.message}&subject=new IND notification`,
       ),

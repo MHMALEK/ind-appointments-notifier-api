@@ -39,7 +39,7 @@ export class CronjobsService {
   //   // this.notifierService.sendTestMessage();
   // }
 
-  @Cron(CronExpression.EVERY_2_HOURS)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async cronJobfindUsersThatHasRequestedASlot() {
     this.logger.debug('find users');
     this.notifierService.findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot();

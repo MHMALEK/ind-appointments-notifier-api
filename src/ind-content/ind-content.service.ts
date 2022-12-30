@@ -8,7 +8,6 @@ const contentful = require('contentful');
 export class IndContentService {
   client: any;
   constructor(private configService: ConfigService) {
-    console.log('asd');
     this.client = contentful.createClient({
       space: this.configService.get<string>('IND_CONTENT_API_SPACE'),
       accessToken: this.configService.get<string>('IND_CONTENT_API_TOKEN'),
@@ -16,7 +15,7 @@ export class IndContentService {
   }
   async getIndContentFromCMS() {
     try {
-      const res = await this.client.getEntry('4XKP5Yd9oV0devAyvEopZl');
+      const res = await this.client.getEntry('6iIBzea4MHGAkhyNYr3urK');
       return (res.fields as any).indData.data;
     } catch (e) {
       console.log(e);

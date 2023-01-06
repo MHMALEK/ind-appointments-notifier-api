@@ -39,13 +39,13 @@ export class CronjobsService {
   //   // this.notifierService.sendTestMessage();
   // }
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  // @Cron(CronExpression.EVERY_10_MINUTES)
   async cronJobfindUsersThatHasRequestedASlot() {
     this.logger.debug('find users');
     this.notifierService.findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot();
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  // @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async cronJobfindUsersWithExpiredRequestsAndDeleteThemFromDB() {
     this.logger.debug('find users');
     this.notifierService.updateDataBaseAndRemoveOutdatedRequests();

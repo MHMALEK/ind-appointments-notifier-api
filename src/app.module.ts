@@ -18,6 +18,8 @@ import { MessengerModule } from './messenger/messenger.module';
 import { NewAppointmentNotifierModule } from './new-appointment-notifier/new-appointment-notifier.module';
 import { IndContentModule } from './ind-content/ind-content.module';
 import { ConfigModule } from '@nestjs/config';
+import { NotificationModule } from './notification/notification.module';
+// import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -37,6 +39,7 @@ import { ConfigModule } from '@nestjs/config';
     MessengerModule,
     NewAppointmentNotifierModule,
     IndContentModule,
+    NotificationModule,
   ],
 
   controllers: [AppController],

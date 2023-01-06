@@ -1,46 +1,96 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Time, TimeDocument } from './schemas/time.schema';
+import { CreateUserDto } from './CreatNewUser.dto';
 import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UserService {
   constructor(
-    // @InjectModel(User.name)
-    // private userModel: Model<UserDocument>,
-    @InjectModel(Time.name)
-    private timeModel: Model<TimeDocument>,
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
   ) {}
-  // async saveUserToDatabase(data) {
-  //   const createdData = new this.userModel(data);
-  //   return await createdData
-  //     .save()
-  //     .then((item) => item)
-  //     .catch(() => new HttpException('error save in DB', 500));
-  // }
-  // public async isUserExist(telegramId) {
-  //   return await this.userModel.findOne({ telegramId });
-  // }
-  async saveUserLatestTime({ telegramId, date }) {
-    // const createdData = new this.timeModel();
-    // const isUserExist = await this.isUserExist(telegramId);
+  async createNewUser(createUserPayload: CreateUserDto) {
+    const existingUser = await this.checkIfUserAlreadyExist(createUserPayload);
 
-    // if (!isUserExist) {
-    //   throw new HttpException('user does not exist', 404);
-    // }
-
-    const alreadyRequestedTime = await this.timeModel.findOne({ telegramId });
-
-    if (alreadyRequestedTime) {
-      return await this.timeModel.updateOne({ telegramId }, { date });
+    if (existingUser) {
+      const updatedUser = await this.updateUser({
+        ...createUserPayload,
+      });
+      return updatedUser;
     }
 
-    const dataToSave = new this.timeModel({ telegramId, date });
+    // if user using his telegram ID, then it's already verify itself
+    const isVerified =
+      createUserPayload.telegramId || !createUserPayload.email ? true : false;
+    const createdUser = new this.userModel({
+      ...createUserPayload,
+      isVerified,
+    });
 
-    await dataToSave
-      .save()
-      .then((item) => item)
-      .catch((e) => new HttpException(e, 500));
+    const savedUser = await createdUser.save();
+    return savedUser;
+  }
+  async findUserByTelegramOrEmail({ email, telegramId }) {
+    const user = await this.userModel.findOne({
+      $or: [{ email }, { telegramId }],
+    });
+    return user;
+  }
+
+  async findUserById(userId: string) {
+    const user = await this.userModel.findOne({ id: userId });
+    return user;
+  }
+
+  async updateUser({ email, telegramId }) {
+    const user = await this.userModel.findOneAndUpdate(
+      {
+        $or: [{ email }, { telegramId }],
+      },
+      {
+        email,
+        telegramId,
+      },
+    );
+    return user;
+  }
+
+  async removeUser({ email, telegramId }) {
+    const user = await this.userModel.findOneAndRemove({
+      $or: [{ email }, { telegramId }],
+    });
+    return user;
+  }
+
+  async checkIfUserAlreadyExist({ telegramId, email }) {
+    const user = await this.findUserByTelegramOrEmail({ telegramId, email });
+    if (user) {
+      return true;
+    }
+    return false;
+  }
+  async getUsersList() {
+    const users = await this.userModel.find();
+  }
+
+  async verifyUserEmail(email: string) {
+    try {
+      await this.userModel.findOneAndUpdate(
+        {
+          email,
+        },
+        {
+          isVerified: true,
+        },
+      );
+      const user = await this.findUserByTelegramOrEmail({
+        email,
+        telegramId: null,
+      });
+      return user;
+    } catch (e) {
+      return null;
+    }
   }
 }

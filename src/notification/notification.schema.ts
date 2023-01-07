@@ -9,7 +9,7 @@ export class Notification {
   userId: string;
 
   @Prop({ required: true })
-  date: string;
+  date: number;
 
   @Prop({ required: true })
   service: string;

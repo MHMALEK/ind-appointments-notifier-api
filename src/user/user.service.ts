@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { MessengerService } from 'src/messenger/messenger.service';
 import { CreateUserDto } from './CreatNewUser.dto';
 import { User, UserDocument } from './schemas/user.schema';
 
@@ -9,6 +10,7 @@ export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
+    private messengerService: MessengerService,
   ) {}
   async createNewUser(createUserPayload: CreateUserDto) {
     const existingUser = await this.checkIfUserAlreadyExist(createUserPayload);
@@ -74,20 +76,21 @@ export class UserService {
     const users = await this.userModel.find();
   }
 
-  async verifyUserEmail(email: string) {
+  sendVerificationEmail = (user) => {
+    this.messengerService.sendVerificationEmail(user);
+  };
+
+  async verifyUserEmail(userId: string) {
     try {
       await this.userModel.findOneAndUpdate(
         {
-          email,
+          id: userId,
         },
         {
           isVerified: true,
         },
       );
-      const user = await this.findUserByTelegramOrEmail({
-        email,
-        telegramId: null,
-      });
+      const user = await this.findUserById(userId);
       return user;
     } catch (e) {
       return null;

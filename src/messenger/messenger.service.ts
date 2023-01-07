@@ -29,6 +29,7 @@ export class MessengerService {
   }
 
   private async sendEmailMessage(payload) {
+    console.log('payload', payload);
     await firstValueFrom(
       this.httpService.get(
         `${this.configService.get('MESSENGER_APP_BASE_API')}/mail/send?to=${
@@ -37,19 +38,20 @@ export class MessengerService {
       ),
     );
   }
-  sendMessageToUser(payload) {
-    const { date, telegramId, service, email } = payload;
+  sendMessageToUser(user, message) {
+    const { telegramId, email } = user;
 
+    console.log('22222', user, message);
     if (telegramId) {
       this.sendTelegramMessage({
         telegramId,
-        message: this.generateMessage({ date, service }),
+        message,
       });
     }
     if (email) {
       this.sendEmailMessage({
         email,
-        message: this.generateMessage({ date, service }),
+        message,
       });
     }
   }
@@ -81,5 +83,18 @@ export class MessengerService {
     ].toLowerCase()} on this time: ${
       payload.date
     } has been expired. you can create a new one.`;
+  }
+
+  generateVerificationEmail(userId) {
+    return `You have requested to be notified for IND services via this eamil. if this is not your email address and you didn't do it please ignore this email, otherwise please verify your email address by clickin on the link below:
+    <a href="${process.env.BASE_URL}/users/verify?userId=${userId}">Verify my email</a>
+    `;
+  }
+
+  sendVerificationEmail(user) {
+    this.sendEmailMessage({
+      email: user.email,
+      message: this.generateVerificationEmail(user.id),
+    });
   }
 }

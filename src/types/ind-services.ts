@@ -6,10 +6,10 @@ enum IND_SERVICES {
 }
 
 enum IND_SERVICES_LABELS {
-  bio = 'BIOMETRICS',
-  doc = 'COLLECT DOCUMENTS',
-  tkv = 'RETURN VISA',
-  vaa = 'RESIDENCE ENDORSEMENT STICKER',
+  bio = 'Biometrics',
+  doc = 'Collect residency documents',
+  tkv = 'Return visa',
+  vaa = 'Residence endorsment sticker',
 }
 
 export { IND_SERVICES_LABELS };

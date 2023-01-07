@@ -15,7 +15,6 @@ import { DbModule } from './db/db.module';
 import { UserModule } from './user/user.module';
 import { TimesModule } from './times/times.module';
 import { MessengerModule } from './messenger/messenger.module';
-import { NewAppointmentNotifierModule } from './new-appointment-notifier/new-appointment-notifier.module';
 import { IndContentModule } from './ind-content/ind-content.module';
 import { ConfigModule } from '@nestjs/config';
 import { NotificationModule } from './notification/notification.module';
@@ -37,7 +36,6 @@ import { NotificationModule } from './notification/notification.module';
     UserModule,
     TimesModule,
     MessengerModule,
-    NewAppointmentNotifierModule,
     IndContentModule,
     NotificationModule,
   ],

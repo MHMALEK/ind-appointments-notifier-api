@@ -7,10 +7,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { Time, TimeSchema } from './schemas/time.schema';
 import { TimesService } from 'src/times/times.service';
-import {
-  NotifierAppoinment,
-  NotifierAppoinmentSchema,
-} from 'src/new-appointment-notifier/schemas/appointmentNotifier.schema';
 
 @Module({
   providers: [UserService, DbService, TimesService],
@@ -21,10 +17,7 @@ import {
         name: User.name,
         schema: UserSchema,
       },
-      {
-        name: NotifierAppoinment.name,
-        schema: NotifierAppoinmentSchema,
-      },
+
       {
         name: Time.name,
         schema: TimeSchema,

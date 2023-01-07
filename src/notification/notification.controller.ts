@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, Post } from '@nestjs/common';
 import { CreateNotificationDto } from './notification.dto';
 import { NotificationService } from './notification.service';
 
@@ -10,15 +10,21 @@ export class NotificationController {
     @Body() notificationPayload: CreateNotificationDto,
   ) {
     try {
-      console.log('notificationPayload', notificationPayload);
       const res = await this.notificationService.createNewnotification(
         notificationPayload,
       );
-      console.log('controller', res);
       // return 'Notification created';
       return res;
     } catch (e) {
       throw new HttpException('Something went wrong', 500);
     }
+  }
+  @Get('')
+  async findmalek() {
+    this.notificationService.updateDataBaseAndRemoveOutdatedRequests();
+  }
+  @Get('/test')
+  async findmalek2() {
+    this.notificationService.findUsersThatHasRequestedASlotSoonerThanCurrentSoonestAvailableSlot();
   }
 }

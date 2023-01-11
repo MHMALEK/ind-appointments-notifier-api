@@ -7,6 +7,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { Time, TimeSchema } from './schemas/time.schema';
 import { TimesService } from 'src/times/times.service';
+import { MessengerModule } from 'src/messenger/messenger.module';
 
 @Module({
   providers: [UserService, DbService, TimesService],
@@ -23,6 +24,7 @@ import { TimesService } from 'src/times/times.service';
         schema: TimeSchema,
       },
     ]),
+    MessengerModule,
   ],
   controllers: [UserController],
   exports: [UserService],

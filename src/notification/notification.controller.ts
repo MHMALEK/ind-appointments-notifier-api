@@ -13,10 +13,13 @@ export class NotificationController {
       const res = await this.notificationService.createNewnotification(
         notificationPayload,
       );
-      // return 'Notification created';
       return res;
-    } catch (e) {
-      throw new HttpException('Something went wrong', 500);
+    } catch (e: any) {
+      console.log(e);
+      throw new HttpException(
+        e.response || 'Something went wrong',
+        e.status || 500,
+      );
     }
   }
   @Get('')

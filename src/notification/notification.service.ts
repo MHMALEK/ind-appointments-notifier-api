@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AppointmentsService } from 'src/appointments/appointments.service';
@@ -39,10 +39,14 @@ export class NotificationService {
       createNotificationDto,
     );
 
+    console.log('user', user);
+
     if (user) {
       if (!user.isVerified) {
-        // send verification
-        return 'user is not verifed yet';
+        // send verification]
+        console.log('111', user);
+        await this.messengerService.sendVerificationEmail(user);
+        throw new HttpException('Your email is not verified yet', 400);
       } else {
         try {
           await this.userService.updateUser(createNotificationDto);
@@ -88,7 +92,8 @@ export class NotificationService {
       });
 
       if (!newUser.isVerified) {
-        return 'you need to verify your email first';
+        await this.messengerService.sendVerificationEmail(newUser);
+        throw new HttpException('Your email is not verified yet', 400);
       } else {
         const creatednotification = new this.notificationModel({
           userId: newUser.id,
@@ -102,6 +107,7 @@ export class NotificationService {
   }
 
   async findUserWhoCreateNotification({ email, telegramId }) {
+    console.log('heeloooo', email, telegramId);
     const user = await this.userService.findUserByTelegramOrEmail({
       email,
       telegramId,

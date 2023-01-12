@@ -5,10 +5,10 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {
-  @Prop()
+  @Prop({ sparse: true, unique: false })
   email: string;
-  @Prop()
-  telegramId: string;
+  @Prop({ unique: false })
+  telegramId: string | undefined | null;
   @Prop()
   isVerified: boolean;
 }

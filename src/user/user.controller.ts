@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpException, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CreateUserDto } from './CreatNewUser.dto';
 import { UserService } from './user.service';
 import { VerifyUserDto } from './VerifyUser.dto';
@@ -16,21 +24,11 @@ export class UserController {
     }
   }
 
-  @Post('/verify')
-  async verifyUserByEmail(@Body() body: VerifyUserDto) {
+  @Get('/verify/:userId')
+  async verifyUserByEmailGet(@Param('userId') userId: string) {
     try {
-      const item = await this.userService.verifyUserEmail(body.userId);
-      return item;
-    } catch (e) {
-      throw new HttpException('Something went wrong', 500);
-    }
-  }
-
-  @Get('/verify')
-  async verifyUserByEmailGet(@Body() body: VerifyUserDto) {
-    try {
-      const item = await this.userService.verifyUserEmail(body.userId);
-      return item;
+      const item = await this.userService.verifyUserEmail(userId);
+      return 'Your email is verified now! You can use IND application to get notified about new appointments! Create a new Notification Now!';
     } catch (e) {
       throw new HttpException('Something went wrong', 500);
     }

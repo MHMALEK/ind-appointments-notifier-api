@@ -15,9 +15,18 @@ export class UserService {
   async createNewUser(createUserPayload: CreateUserDto) {
     const existingUser = await this.checkIfUserAlreadyExist(createUserPayload);
 
+    const savePayload: any = {};
+    if (createUserPayload.email) {
+      savePayload.email = createUserPayload.email;
+    } else {
+      savePayload.telegramId = createUserPayload.telegramId;
+    }
+    console.log(createUserPayload, savePayload);
     if (existingUser) {
       const updatedUser = await this.updateUser({
-        ...createUserPayload,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        savePayload,
       });
       return updatedUser;
     }
@@ -25,23 +34,37 @@ export class UserService {
     // if user using his telegram ID, then it's already verify itself
     const isVerified =
       createUserPayload.telegramId || !createUserPayload.email ? true : false;
+
     const createdUser = new this.userModel({
       ...createUserPayload,
       isVerified,
     });
 
+    console.log('createdUser', createdUser);
+
     const savedUser = await createdUser.save();
     return savedUser;
   }
   async findUserByTelegramOrEmail({ email, telegramId }) {
-    const user = await this.userModel.findOne({
-      $or: [{ email }, { telegramId }],
-    });
+    let user;
+    if (email) {
+      user = await this.userModel.findOne({
+        email,
+      });
+    } else if (telegramId) {
+      user = await this.userModel.findOne({
+        telegramId,
+      });
+    } else {
+      user = undefined;
+    }
+
+    // the OR condition on Mango returned false info so I used this strange query
     return user;
   }
 
   async findUserById(userId: string) {
-    const user = await this.userModel.findOne({ id: userId });
+    const user = await this.userModel.findById(userId);
     return user;
   }
 
@@ -82,15 +105,11 @@ export class UserService {
 
   async verifyUserEmail(userId: string) {
     try {
-      await this.userModel.findOneAndUpdate(
-        {
-          id: userId,
-        },
-        {
-          isVerified: true,
-        },
-      );
+      await this.userModel.findByIdAndUpdate(userId, {
+        isVerified: true,
+      });
       const user = await this.findUserById(userId);
+      console.log('verified', user);
       return user;
     } catch (e) {
       return null;

@@ -34,7 +34,7 @@ export class MessengerService {
       this.httpService.get(
         `${this.configService.get('MESSENGER_APP_BASE_API')}/mail/send?to=${
           payload.email
-        }&text=${payload.message}&subject=new IND notification`,
+        }&html=${payload.message}&subject=verify email to get IND notification`,
       ),
     );
   }
@@ -86,8 +86,8 @@ export class MessengerService {
   }
 
   generateVerificationEmail(userId) {
-    return `You have requested to be notified for IND services via this eamil. if this is not your email address and you didn't do it please ignore this email, otherwise please verify your email address by clickin on the link below:
-    <a href="${process.env.BASE_URL}/users/verify?userId=${userId}">Verify my email</a>
+    return `<p>Hello</p><p>You have requested to be notified for IND services. If you didn't request it, please ignore this email, otherwise please verify your email address by clicking on the link below:</p>
+    <p><a href="${process.env.BASE_URL}/users/verify/${userId}">Verify my email</a></p>
     `;
   }
 

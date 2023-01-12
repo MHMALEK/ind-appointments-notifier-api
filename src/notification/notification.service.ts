@@ -191,14 +191,25 @@ export class NotificationService {
   getToday = () => dayjs().unix();
 
   generatePushNotificationMessage = (notification, soonestAvailableTime) => {
-    return `Hello! You have requested a slot sooner than ${this.convertTimeStampToDate(
+    return `<p>Hello!</p><p> You have requested a slot sooner than ${this.convertTimeStampToDate(
       notification.date,
     )} for ${this.getServiceLabelByServiceCode(
       notification.service,
-    )} at ${this.getDeskLabelByDeskCode(notification.desk)}.
-     We have found a new slot available at ${soonestAvailableTime.date} from ${
-      soonestAvailableTime.startTime
-    } to ${soonestAvailableTime.endTime}. <a href="">Get it now!</a>
+    )} at ${this.getDeskLabelByDeskCode(
+      notification.desk,
+    )}.</p><p>We have found a new slot available at ${
+      soonestAvailableTime.date
+    } from ${soonestAvailableTime.startTime} to ${
+      soonestAvailableTime.endTime
+    }.</p>
+    <p>
+     <a href="https://oap.ind.nl/oap/en/#/${
+       notification.service
+     }">Book this one</a>
+     </p>
+     <p>if you don't want to get any notifcation for this service, please <a href="${
+       process.env.BASE_URL
+     }/cancel/${notification.id}">click here</p> to cancel your request</p>
      `;
   };
   handleGetUserInfoForSendNotificationToUsers = async (
@@ -218,18 +229,17 @@ export class NotificationService {
   };
 
   handleSendPushNotificationToUser = async (user, message) => {
-    console.log(111, user, message);
     this.messengerService.sendMessageToUser(user, message);
   };
 
   generateExpiredRequestPushNotificationMessage = (notification) => {
-    return `Hello!
-     You have requested a slot sooner than  ${this.convertTimeStampToDate(
-       notification.date,
-     )} for ${this.getServiceLabelByServiceCode(
+    return `<p>Hello!</p><p>You have requested a slot sooner than  ${this.convertTimeStampToDate(
+      notification.date,
+    )} for ${this.getServiceLabelByServiceCode(
       notification.service,
-    )} at ${this.getDeskLabelByDeskCode(notification.desk)}.
-     We could not find any slot sooner than your requested time and this request is not valid anymore. if you need an appointment, please create a new request.
+    )} at ${this.getDeskLabelByDeskCode(
+      notification.desk,
+    )}.</p><p>We could not find any slot sooner than your requested time and this request is not valid anymore. if you need an appointment, please create a new request.</p>
      `;
   };
 
@@ -248,5 +258,14 @@ export class NotificationService {
     }
 
     return notifications;
+  };
+  cancelNotification = async (notificationId: string) => {
+    const notification = await this.notificationModel.findByIdAndRemove(
+      notificationId,
+    );
+    if (notification) {
+      return true;
+    }
+    return new HttpException('something went wrong', 500);
   };
 }

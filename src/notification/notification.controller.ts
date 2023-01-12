@@ -1,4 +1,11 @@
-import { Body, Controller, Get, HttpException, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { CreateNotificationDto } from './notification.dto';
 import { NotificationService } from './notification.service';
 
@@ -20,6 +27,20 @@ export class NotificationController {
         e.response || 'Something went wrong',
         e.status || 500,
       );
+    }
+  }
+  @Get('cancel/:notificationId')
+  async cancelNotification(@Param('notificationId') notificationId: string) {
+    try {
+      const res = await this.notificationService.cancelNotification(
+        notificationId,
+      );
+      console.log('ree', res);
+      if (res) {
+        return { success: true };
+      }
+    } catch (e) {
+      throw new HttpException('something went wrong', 500);
     }
   }
   @Get('')

@@ -201,9 +201,7 @@ export class NotificationService {
       soonestAvailableTime.date
     } from ${soonestAvailableTime.startTime} to ${
       soonestAvailableTime.endTime
-    }. <a href="https://oap.ind.nl/oap/en/#/${
-      notification.service
-    }" >Book this one</a></p><p>if you don't want to get any notifcation for this service, please <a href="${
+    }. <a href="https://oap.ind.nl/oap/en/#/${notification.service}">Book this one</a></p><p>if you don't want to get any notifcation for this service, please <a href="${
       process.env.BASE_URL
     }/cancel/${notification.id}">click here</p> to cancel your request</p>
      `;

@@ -1,4 +1,3 @@
-import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 // eslint-disable-next-line @typescript-eslint/no-var-requires

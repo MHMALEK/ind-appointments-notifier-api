@@ -35,7 +35,6 @@ export class NotificationController {
       const res = await this.notificationService.cancelNotification(
         notificationId,
       );
-      console.log('ree', res);
       if (res) {
         return { success: true };
       }

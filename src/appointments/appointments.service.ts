@@ -28,7 +28,6 @@ export class AppointmentsService {
   }
 
   private generateHttpRequest(payload = defaultINDAPIPayload) {
-    console.log('asda', this.queryBuilderService.generateQuery(payload));
     return this.httpService.get(
       this.queryBuilderService.generateQuery(payload),
     );

@@ -87,7 +87,7 @@ export class NotificationService {
     }
     if (!user) {
       const newUser = await this.userService.createNewUser({
-        telegramId: createNotificationDto.telegramId,
+        push: createNotificationDto.push,
         email: createNotificationDto.email,
       });
 
@@ -106,11 +106,11 @@ export class NotificationService {
     }
   }
 
-  async findUserWhoCreateNotification({ email, telegramId }) {
-    console.log('heeloooo', email, telegramId);
-    const user = await this.userService.findUserByTelegramOrEmail({
+  async findUserWhoCreateNotification({ email, push }) {
+    console.log('heeloooo', email, push);
+    const user = await this.userService.findUserByPushOrEmail({
       email,
-      telegramId,
+      push,
     });
     if (!user) {
       return null;
@@ -201,7 +201,9 @@ export class NotificationService {
       soonestAvailableTime.date
     } from ${soonestAvailableTime.startTime} to ${
       soonestAvailableTime.endTime
-    }. <a href="https://oap.ind.nl/oap/en/#/${notification.service}">Book this one</a></p><p>if you don't want to get any notifcation for this service, please <a href="${
+    }. <a href="https://oap.ind.nl/oap/en/#/${
+      notification.service
+    }">Book this one</a></p><p>if you don't want to get any notifcation for this service, please <a href="${
       process.env.BASE_URL
     }/cancel/${notification.id}">click here</p> to cancel your request</p>
      `;

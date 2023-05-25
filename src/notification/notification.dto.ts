@@ -3,7 +3,7 @@ import { IsEmail, IsOptional, IsString } from 'class-validator';
 export class CreateNotificationDto {
   @IsOptional()
   @IsString()
-  telegramId: string;
+  push: string;
   @IsEmail()
   @IsOptional()
   email: string;

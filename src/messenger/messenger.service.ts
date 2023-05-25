@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { IND_SERVICES_LABELS } from 'src/types/ind-services';
 
 export const defaultMesasgePayload = {
-  telegramId: 1949747267,
+  push: 1949747267,
   message: 'you have a new message',
   email: 'mhos.malek@gmail.com',
 };
@@ -16,14 +16,15 @@ export class MessengerService {
     private configService: ConfigService,
   ) {}
 
-  private async sendTelegramMessage(payload) {
+  private async sendPushMessage(payload) {
     await firstValueFrom(
-      this.httpService.get(
-        `${this.configService.get(
-          'MESSENGER_APP_BASE_API',
-        )}/telegram/send?chatId=${payload.telegramId}&message=${
-          payload.message
-        }`,
+      this.httpService.post(
+        `${this.configService.get('MESSENGER_APP_BASE_API')}/push/send`,
+        {
+          devices: [payload.push],
+          body: payload.message,
+          title: 'new Appointment is available',
+        },
       ),
     );
   }
@@ -39,12 +40,12 @@ export class MessengerService {
     );
   }
   sendMessageToUser(user, message) {
-    const { telegramId, email } = user;
+    const { push, email } = user;
 
     console.log('22222', user, message);
-    if (telegramId) {
-      this.sendTelegramMessage({
-        telegramId,
+    if (push) {
+      this.sendPushMessage({
+        push,
         message,
       });
     }
@@ -62,10 +63,10 @@ export class MessengerService {
   }
 
   sendExpiredRequestMessageToUser(payload) {
-    const { date, telegramId, service, email } = payload;
-    if (telegramId) {
-      this.sendTelegramMessage({
-        telegramId,
+    const { date, push, service, email } = payload;
+    if (push) {
+      this.sendPushMessage({
+        push,
         message: this.generateExpiredRequestMessage({ date, service }),
       });
     }

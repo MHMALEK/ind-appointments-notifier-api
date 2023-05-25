@@ -6,7 +6,7 @@ export type TimeDocument = HydratedDocument<Time>;
 @Schema()
 export class Time {
   @Prop()
-  telegramId: string;
+  push: string;
   @Prop()
   date: string;
 }

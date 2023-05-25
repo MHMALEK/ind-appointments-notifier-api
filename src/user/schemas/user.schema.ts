@@ -8,7 +8,7 @@ export class User {
   @Prop({ sparse: true, unique: false })
   email: string;
   @Prop({ unique: false })
-  telegramId: string | undefined | null;
+  push: string | undefined | null;
   @Prop()
   isVerified: boolean;
 }

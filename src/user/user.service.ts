@@ -19,7 +19,7 @@ export class UserService {
     if (createUserPayload.email) {
       savePayload.email = createUserPayload.email;
     } else {
-      savePayload.telegramId = createUserPayload.telegramId;
+      savePayload.push = createUserPayload.push;
     }
     console.log(createUserPayload, savePayload);
     if (existingUser) {
@@ -31,9 +31,9 @@ export class UserService {
       return updatedUser;
     }
 
-    // if user using his telegram ID, then it's already verify itself
+    // if user using his push ID, then it's already verify itself
     const isVerified =
-      createUserPayload.telegramId || !createUserPayload.email ? true : false;
+      createUserPayload.push || !createUserPayload.email ? true : false;
 
     const createdUser = new this.userModel({
       ...createUserPayload,
@@ -45,15 +45,15 @@ export class UserService {
     const savedUser = await createdUser.save();
     return savedUser;
   }
-  async findUserByTelegramOrEmail({ email, telegramId }) {
+  async findUserByPushOrEmail({ email, push }) {
     let user;
     if (email) {
       user = await this.userModel.findOne({
         email,
       });
-    } else if (telegramId) {
+    } else if (push) {
       user = await this.userModel.findOne({
-        telegramId,
+        push,
       });
     } else {
       user = undefined;
@@ -68,28 +68,28 @@ export class UserService {
     return user;
   }
 
-  async updateUser({ email, telegramId }) {
+  async updateUser({ email, push }) {
     const user = await this.userModel.findOneAndUpdate(
       {
-        $or: [{ email }, { telegramId }],
+        $or: [{ email }, { push }],
       },
       {
         email,
-        telegramId,
+        push,
       },
     );
     return user;
   }
 
-  async removeUser({ email, telegramId }) {
+  async removeUser({ email, push }) {
     const user = await this.userModel.findOneAndRemove({
-      $or: [{ email }, { telegramId }],
+      $or: [{ email }, { push }],
     });
     return user;
   }
 
-  async checkIfUserAlreadyExist({ telegramId, email }) {
-    const user = await this.findUserByTelegramOrEmail({ telegramId, email });
+  async checkIfUserAlreadyExist({ push, email }) {
+    const user = await this.findUserByPushOrEmail({ push, email });
     if (user) {
       return true;
     }

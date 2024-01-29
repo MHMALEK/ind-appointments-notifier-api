@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AppointmentsService } from 'src/appointments/appointments.service';
@@ -17,15 +17,17 @@ export class NotificationService {
   constructor(
     @InjectModel(Notification.name)
     private notificationModel: Model<NotificationDocument>,
+
+    @Inject(forwardRef(() => UserService))
     private userService: UserService,
+
+    // private userService: UserService,
     private appointmentService: AppointmentsService,
     private indContentService: IndContentService,
     private messengerService: MessengerService,
   ) {}
 
   convertDateToTimeStamp(date: string) {
-    const dateArray = date.split('-');
-    console.log('12132312', dateArray, date);
     return dayjs(date).unix();
   }
 
@@ -34,92 +36,77 @@ export class NotificationService {
     return dayjs(dateObject).format('DD-MM-YYYY');
   }
 
-  async createNewnotification(createNotificationDto: CreateNotificationDto) {
-    const user = await this.findUserWhoCreateNotification(
-      createNotificationDto,
-    );
-
-    console.log('user', user);
-
-    if (user) {
-      if (!user.isVerified) {
-        // send verification]
-        console.log('111', user);
-        await this.messengerService.sendVerificationEmail(user);
-        throw new HttpException('Your email is not verified yet', 400);
-      } else {
-        try {
-          await this.userService.updateUser(createNotificationDto);
-
-          const notificationExistAlready = await this.findnotificationsForUser({
-            userId: user.id,
-            desk: createNotificationDto.desk,
-            service: createNotificationDto.service,
-            date: this.convertDateToTimeStamp(createNotificationDto.date),
-          });
-
-          if (notificationExistAlready) {
-            const updatedNotification = await this.updateNotification({
-              userId: user.id,
-              desk: createNotificationDto.desk,
-              service: createNotificationDto.service,
-              date: this.convertDateToTimeStamp(createNotificationDto.date),
-            });
-            return updatedNotification;
-          } else {
-            try {
-              const creatednotification = new this.notificationModel({
-                userId: user.id,
-                desk: createNotificationDto.desk,
-                service: createNotificationDto.service,
-                date: this.convertDateToTimeStamp(createNotificationDto.date),
-              });
-              const createdNotificationRes = await creatednotification.save();
-              return createdNotificationRes;
-            } catch (e) {
-              throw new Error('something went wrong');
-            }
-          }
-        } catch (e) {
-          console.log('e', e);
-        }
-      }
+  async findUserByNotificationId(notificationId: string) {
+    const notification = await this.notificationModel.findById(notificationId);
+    if (!notification) {
+      throw new HttpException('notification not found', 404);
     }
+    const user = await this.userService.findUserByFireBaseUserId({
+      firebase_user_id: notification.firebase_user_id,
+    });
     if (!user) {
-      const newUser = await this.userService.createNewUser({
-        push: createNotificationDto.push,
-        email: createNotificationDto.email,
+      throw new HttpException('user not found', 404);
+    }
+    return user;
+  }
+
+  async saveNotificationToDb(createNotificationDto: CreateNotificationDto) {
+    const createdNotification = new this.notificationModel({
+      ...createNotificationDto,
+      date: this.convertDateToTimeStamp(createNotificationDto.date),
+    });
+    return createdNotification.save();
+  }
+  async createNewnotification(
+    firebase_user,
+    createNotificationDto: CreateNotificationDto,
+  ) {
+    try {
+      const userWhoMadeNotification = await this.findUserWhoCreateNotification({
+        firebase_user_id: firebase_user.user_id,
       });
 
-      if (!newUser.isVerified) {
-        await this.messengerService.sendVerificationEmail(newUser);
-        throw new HttpException('Your email is not verified yet', 400);
-      } else {
-        const creatednotification = new this.notificationModel({
-          userId: newUser.id,
-          desk: createNotificationDto.desk,
-          service: createNotificationDto.service,
-          date: this.convertDateToTimeStamp(createNotificationDto.date),
+      if (!userWhoMadeNotification) {
+        // first time user
+        await this.userService.saveUserToDb({
+          firebase_user_id: firebase_user.user_id,
+          email: firebase_user.email,
+          pushToken: firebase_user.pushToken,
         });
-        return creatednotification.save();
       }
+
+      const notificationExistAlready = await this.findnotificationForUser({
+        firebase_user_id: firebase_user.user_id,
+        desk: createNotificationDto.desk,
+        service: createNotificationDto.service,
+        date: this.convertDateToTimeStamp(createNotificationDto.date),
+      });
+      if (notificationExistAlready) {
+        // if same notification exist already, return it
+        return notificationExistAlready;
+      } else {
+        // if notification does not exist, create it
+        await this.saveNotificationToDb({
+          ...createNotificationDto,
+          firebase_user_id: userWhoMadeNotification.firebase_user_id,
+        });
+      }
+    } catch (e) {
+      console.log(e);
+      throw new HttpException('something went wrong', 500);
     }
   }
 
-  async findUserWhoCreateNotification({ email, push }) {
-    console.log('heeloooo', email, push);
-    const user = await this.userService.findUserByPushOrEmail({
-      email,
-      push,
-    });
+  async findUserWhoCreateNotification(payload: { firebase_user_id: string }) {
+    const user = await this.userService.findUserByFireBaseUserId(payload);
     if (!user) {
       return null;
     }
     return user;
   }
-  async findnotificationsForUser({ userId, service, date, desk }) {
+  async findnotificationForUser({ firebase_user_id, service, date, desk }) {
     const notification = await this.notificationModel.findOne({
-      userId: userId,
+      firebase_user_id,
       service,
       date,
       desk,
@@ -128,9 +115,9 @@ export class NotificationService {
     return notification;
   }
 
-  async updateNotification({ userId, service, date, desk }) {
+  async updateNotification({ firebase_user_id, service, date, desk }) {
     const notification = await this.notificationModel.findOneAndUpdate({
-      userId: userId,
+      firebase_user_id,
       service,
       date,
       desk,
@@ -144,7 +131,6 @@ export class NotificationService {
     desk,
   }) => {
     const timeStapDate = this.convertDateToTimeStamp(date);
-    console.log('timeStapDate', timeStapDate);
     const notifications = await this.notificationModel.find({
       service,
       desk,
@@ -172,7 +158,6 @@ export class NotificationService {
               desk: desks[i].code,
               date: soonestAvailableTime.date,
             });
-
           if (notifications.length > 0) {
             this.handleGetUserInfoForSendNotificationToUsers(
               notifications,
@@ -190,45 +175,58 @@ export class NotificationService {
 
   getToday = () => dayjs().unix();
 
-  generatePushNotificationMessage = (notification, soonestAvailableTime) => {
-    return `<p>Hello!</p><p> You have requested a slot sooner than ${this.convertTimeStampToDate(
-      notification.date,
-    )} for ${this.getServiceLabelByServiceCode(
+  generateNotificationMessage = (notification, soonestAvailableTime) => {
+    return `
+      <p>Hello!</p>
+      <p>You have requested a slot sooner than ${this.convertTimeStampToDate(
+        notification.date,
+      )} for ${this.getServiceLabelByServiceCode(
       notification.service,
-    )} at ${this.getDeskLabelByDeskCode(
-      notification.desk,
-    )}.</p><p>We have found a new slot available at ${
-      soonestAvailableTime.date
-    } from ${soonestAvailableTime.startTime} to ${
+    )} at ${this.getDeskLabelByDeskCode(notification.desk)}.</p>
+      <p>We have found a new slot available at ${
+        soonestAvailableTime.date
+      } from ${soonestAvailableTime.startTime} to ${
       soonestAvailableTime.endTime
     }. <a href="https://oap.ind.nl/oap/en/#/${
       notification.service
-    }">Book this one</a></p><p>if you don't want to get any notifcation for this service, please <a href="${
+    }">Book this one</a></p>
+      <p>If you don't want to get any notification for this service, please <a href="${
+        process.env.BASE_URL
+      }/users/unsubscribe?notification_id=${
+      notification.id
+    }">click here</a> to cancel your request</p>.
+    <p>If you don't want to get any notification from us and remove your data, please send <a href="${
       process.env.BASE_URL
-    }/cancel/${notification.id}">click here</p> to cancel your request</p>
-     `;
+    }/users/unsubscribe/all?notification_id=${
+      notification.id
+    }">Remove my data</a> request.</p>.
+
+    `;
   };
+
   handleGetUserInfoForSendNotificationToUsers = async (
     notifications: any,
     soonestAvailableTime: any,
   ) => {
     for (let i = 0; i < notifications.length; i++) {
-      const user = await this.userService.findUserById(notifications[i].userId);
-      const message = this.generatePushNotificationMessage(
+      const user = await this.userService.findUserByFireBaseUserId({
+        firebase_user_id: notifications[i].firebase_user_id,
+      });
+      const message = this.generateNotificationMessage(
         notifications[i],
         soonestAvailableTime,
       );
-      this.handleSendPushNotificationToUser(user, message);
+      this.handleSendNotificationToUser(user, message);
     }
-
     return notifications;
   };
 
-  handleSendPushNotificationToUser = async (user, message) => {
+  handleSendNotificationToUser = async (user, message) => {
+    console.log(user, message);
     this.messengerService.sendMessageToUser(user, message);
   };
 
-  generateExpiredRequestPushNotificationMessage = (notification) => {
+  generateExpiredRequestNotificationMessage = (notification) => {
     return `<p>Hello!</p><p>You have requested a slot sooner than  ${this.convertTimeStampToDate(
       notification.date,
     )} for ${this.getServiceLabelByServiceCode(
@@ -245,11 +243,13 @@ export class NotificationService {
       date: { $lte: todayTimestamp },
     });
     for (let i = 0; i < notifications.length; i++) {
-      const user = await this.userService.findUserById(notifications[i].userId);
-      const message = this.generateExpiredRequestPushNotificationMessage(
+      const user = await this.userService.findUserByFireBaseUserId({
+        firebase_user_id: notifications[i].firebase_user_id,
+      });
+      const message = this.generateExpiredRequestNotificationMessage(
         notifications[i],
       );
-      await this.handleSendPushNotificationToUser(user, message);
+      await this.handleSendNotificationToUser(user, message);
       await notifications[i].remove();
     }
 
@@ -264,4 +264,12 @@ export class NotificationService {
     }
     return new HttpException('something went wrong', 500);
   };
+  async deleteAllNotificationsForUser(firebase_user_id) {
+    return await this.notificationModel.deleteMany({ firebase_user_id });
+  }
+  async deleteOneNotificationForUser(notificationId) {
+    return await this.notificationModel.findOneAndDelete({
+      _id: notificationId,
+    });
+  }
 }

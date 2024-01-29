@@ -6,7 +6,7 @@ export type NotificationDocument = HydratedDocument<Notification>;
 @Schema()
 export class Notification {
   @Prop({ required: true })
-  userId: string;
+  firebase_user_id: string;
 
   @Prop({ required: true })
   date: number;

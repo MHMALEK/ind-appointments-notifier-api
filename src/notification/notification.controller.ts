@@ -3,21 +3,25 @@ import {
   Controller,
   Get,
   HttpException,
-  Param,
   Post,
+  Req,
 } from '@nestjs/common';
 import { CreateNotificationDto } from './notification.dto';
 import { NotificationService } from './notification.service';
+import { Request } from 'express';
 
 @Controller('notification')
 export class NotificationController {
   constructor(private notificationService: NotificationService) {}
   @Post('/new')
   async CreateNewNotification(
+    @Req() req: Request,
     @Body() notificationPayload: CreateNotificationDto,
   ) {
     try {
+      const user = req.user;
       const res = await this.notificationService.createNewnotification(
+        user,
         notificationPayload,
       );
       return res;
@@ -29,19 +33,7 @@ export class NotificationController {
       );
     }
   }
-  @Get('cancel/:notificationId')
-  async cancelNotification(@Param('notificationId') notificationId: string) {
-    try {
-      const res = await this.notificationService.cancelNotification(
-        notificationId,
-      );
-      if (res) {
-        return { success: true };
-      }
-    } catch (e) {
-      throw new HttpException('something went wrong', 500);
-    }
-  }
+
   @Get('')
   async findmalek() {
     this.notificationService.updateDataBaseAndRemoveOutdatedRequests();

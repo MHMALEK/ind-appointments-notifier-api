@@ -30,19 +30,20 @@ export class MessengerService {
   }
 
   private async sendEmailMessage(payload) {
-    console.log('payload', payload);
     await firstValueFrom(
-      this.httpService.get(
-        `${this.configService.get('MESSENGER_APP_BASE_API')}/mail/send?to=${
-          payload.email
-        }&html=${payload.message}&subject=verify email to get IND notification`,
+      this.httpService.post(
+        `${this.configService.get('MESSENGER_APP_BASE_API')}/mail/send`,
+        {
+          to: payload.email,
+          html: payload.message,
+          subject: 'verify email to get IND notification',
+        },
       ),
     );
   }
   sendMessageToUser(user, message) {
     const { push, email } = user;
 
-    console.log('22222', user, message);
     if (push) {
       this.sendPushMessage({
         push,

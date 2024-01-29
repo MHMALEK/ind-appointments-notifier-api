@@ -36,6 +36,8 @@
     "contentful": "^9.2.14",
     "date-fns": "^2.29.3",
     "dayjs": "^1.11.7",
+    "firebase": "^10.7.2",
+    "firebase-admin": "^12.0.0",
     "mongodb": "^4.12.1",
     "mongoose": "^6.7.4",
     "passport": "^0.6.0",

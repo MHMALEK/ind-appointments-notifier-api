@@ -44,15 +44,15 @@ export class VerificationPushService {
   };
 
   async verifyUserEmail(userId: string) {
-    try {
-      await this.userModel.findByIdAndUpdate(userId, {
-        isVerified: true,
-      });
-      const user = await this.userService.findUserById(userId);
-      return user;
-    } catch (e) {
-      return null;
-    }
+    // try {
+    //   await this.userModel.findByIdAndUpdate(userId, {
+    //     isVerified: true,
+    //   });
+    //   const user = await this.userService.findUserById(userId);
+    //   return user;
+    // } catch (e) {
+    //   return null;
+    // }
   }
   verifyUserByPush(data) {
     // this.userModel.

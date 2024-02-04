@@ -2,6 +2,11 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import { sendMailMessageDTO } from 'src/mail/DTO/sendMailMessage.dto';
+import { MailService } from 'src/mail/mail.service';
+import { PreferedWayOfCommunication } from 'src/notification/notification.dto';
+import { SendPushNotificationDTO } from 'src/push-notification/DTO/push-notification.dto';
+import { PushNotificationService } from 'src/push-notification/push-notification.service';
 import { IND_SERVICES_LABELS } from 'src/types/ind-services';
 
 export const defaultMesasgePayload = {
@@ -12,48 +17,36 @@ export const defaultMesasgePayload = {
 @Injectable()
 export class MessengerService {
   constructor(
-    private readonly httpService: HttpService,
-    private configService: ConfigService,
+    private pushNotificationService: PushNotificationService,
+    private mailService: MailService,
   ) {}
 
-  private async sendPushMessage(payload) {
-    await firstValueFrom(
-      this.httpService.post(
-        `${this.configService.get('MESSENGER_APP_BASE_API')}/push/send`,
-        {
-          devices: [payload.push],
-          body: payload.message,
-          title: 'new Appointment is available',
-        },
-      ),
-    );
+  private async sendPushMessage(payload: SendPushNotificationDTO) {
+    await this.pushNotificationService.sendPushNotification(payload);
   }
 
-  private async sendEmailMessage(payload) {
-    await firstValueFrom(
-      this.httpService.post(
-        `${this.configService.get('MESSENGER_APP_BASE_API')}/mail/send`,
-        {
-          to: payload.email,
-          html: payload.message,
-          subject: 'verify email to get IND notification',
-        },
-      ),
-    );
+  private async sendEmailMessage(payload: sendMailMessageDTO) {
+    await this.mailService.sendMail(payload);
   }
-  sendMessageToUser(user, message) {
-    const { push, email } = user;
+  sendMessageToUser(user, message, title, prefered_way_of_communication) {
+    const { pushToken, email } = user;
 
-    if (push) {
+    if (
+      prefered_way_of_communication ===
+      PreferedWayOfCommunication.PUSH_NOTIFICATION
+    ) {
       this.sendPushMessage({
-        push,
+        pushToken,
         message,
+        title,
       });
     }
-    if (email) {
+    if (prefered_way_of_communication === PreferedWayOfCommunication.EMAIL) {
       this.sendEmailMessage({
-        email,
-        message,
+        to: email,
+        subject: title,
+        html: message,
+        text: message,
       });
     }
   }
@@ -61,22 +54,6 @@ export class MessengerService {
     return `Hooray! There is a new slot is available for ${IND_SERVICES_LABELS[
       payload.service
     ].toLowerCase()} on this time: ${payload.date}`;
-  }
-
-  sendExpiredRequestMessageToUser(payload) {
-    const { date, push, service, email } = payload;
-    if (push) {
-      this.sendPushMessage({
-        push,
-        message: this.generateExpiredRequestMessage({ date, service }),
-      });
-    }
-    if (email) {
-      this.sendEmailMessage({
-        email,
-        message: this.generateExpiredRequestMessage({ date, service }),
-      });
-    }
   }
 
   generateExpiredRequestMessage(payload) {
@@ -91,12 +68,5 @@ export class MessengerService {
     return `<p>Hello</p><p>You have requested to be notified for IND services. If you didn't request it, please ignore this email, otherwise please verify your email address by clicking on the link below:</p>
     <p><a href="${process.env.BASE_URL}/users/verify/${userId}">Verify my email</a></p>
     `;
-  }
-
-  sendVerificationEmail(user) {
-    this.sendEmailMessage({
-      email: user.email,
-      message: this.generateVerificationEmail(user.id),
-    });
   }
 }

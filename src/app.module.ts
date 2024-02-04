@@ -12,6 +12,10 @@ import { IndContentModule } from './ind-content/ind-content.module';
 import { ConfigModule } from '@nestjs/config';
 import { NotificationModule } from './notification/notification.module';
 import * as firebaseAdmin from 'firebase-admin';
+import { MailModule } from './mail/mail.module';
+import { SmsModule } from './sms/sms.module';
+import { PushNotificationModule } from './push-notification/push-notification.module';
+import * as serviceAccount from 'src/ind-application-af6db-firebase-adminsdk-vyg7c-87a3b1a018.json';
 
 @Module({
   imports: [
@@ -28,6 +32,9 @@ import * as firebaseAdmin from 'firebase-admin';
     IndContentModule,
     NotificationModule,
     UserModule,
+    MailModule,
+    SmsModule,
+    PushNotificationModule,
   ],
 
   controllers: [AppController],
@@ -44,7 +51,12 @@ export class AppModule implements OnModuleInit {
       appId: '1:419666471833:web:7e9ceabf1d1025e5fac108',
       measurementId: 'G-1Z7YXX4JT6',
     };
-    const app = firebaseAdmin.initializeApp(firebaseConfig);
+    const app = firebaseAdmin.initializeApp({
+      credential: firebaseAdmin.credential.cert(
+        serviceAccount as firebaseAdmin.ServiceAccount,
+      ),
+      ...firebaseConfig,
+    });
     return app;
   }
 }

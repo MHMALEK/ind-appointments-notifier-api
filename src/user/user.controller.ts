@@ -1,24 +1,37 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 
 @Controller('users')
 export class UserController {
   constructor(private userService: UserService) {}
   @Get('/unsubscribe')
-  unsubscribeFromOneNotification(
+  async unsubscribeFromOneNotification(
     @Query('notification_id') notificationId: string,
   ) {
-    this.userService.unsubscribeAndRemoveNotificationsForOneService(
+    return await this.userService.unsubscribeAndRemoveNotificationsForOneService(
       notificationId,
     );
   }
   @Get('/unsubscribe/all')
-  unsubscribeFromAllNotifications(
+  async unsubscribeFromAllNotifications(
     @Query('notification_id') notification_id: string,
   ) {
-    console.log('asda', notification_id);
-    this.userService.unsubscribeAndRemoveAllNotificationsAndUser(
+    return await this.userService.unsubscribeAndRemoveAllNotificationsAndUser(
       notification_id,
     );
+  }
+
+  @Delete('/delete')
+  async deleteUserAndAllNotifications(@Query('user_id') user_id: string) {
+    return await this.userService.deleteUserAndAllNotifications(user_id);
+  }
+
+  @Post('/set-push-token')
+  async setPushToken(
+    @Body('token') token: string,
+    @Body('user_id') user_id: string,
+    @Body('email') email: string,
+  ) {
+    return await this.userService.setPushToken(token, user_id, email);
   }
 }

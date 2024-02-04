@@ -14,7 +14,6 @@ import { IndContentModule } from 'src/ind-content/ind-content.module';
 import { MessengerModule } from 'src/messenger/messenger.module';
 import { HttpModule } from '@nestjs/axios';
 import { AuthenticationMiddleware } from 'src/middlewares/auth';
-import { UserService } from 'src/user/user.service';
 
 @Module({
   providers: [NotificationService],

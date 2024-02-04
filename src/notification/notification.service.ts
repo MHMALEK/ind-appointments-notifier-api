@@ -8,7 +8,10 @@ import { defaultINDAPIPayload } from 'src/query-builder/query-builder.service';
 import { IND_DESKS_LABELS } from 'src/types/ind-desks';
 import { IND_SERVICES_LABELS } from 'src/types/ind-services';
 import { UserService } from 'src/user/user.service';
-import { CreateNotificationDto } from './notification.dto';
+import {
+  CreateNotificationDto,
+  PreferedWayOfCommunication,
+} from './notification.dto';
 import { Notification, NotificationDocument } from './notification.schema';
 import * as dayjs from 'dayjs';
 
@@ -34,6 +37,19 @@ export class NotificationService {
   convertTimeStampToDate(timestamp: number) {
     const dateObject = dayjs.unix(timestamp);
     return dayjs(dateObject).format('DD-MM-YYYY');
+  }
+
+  async getAllNotificationsForUser(firebase_user) {
+    const user = await this.userService.findUserByFireBaseUserId({
+      firebase_user_id: firebase_user.user_id,
+    });
+    if (!user) {
+      throw new HttpException('user not found', 404);
+    }
+    const notifications = await this.notificationModel.find({
+      firebase_user_id: user.firebase_user_id,
+    });
+    return notifications;
   }
 
   async findUserByNotificationId(notificationId: string) {
@@ -68,6 +84,7 @@ export class NotificationService {
 
       if (!userWhoMadeNotification) {
         // first time user
+
         await this.userService.saveUserToDb({
           firebase_user_id: firebase_user.user_id,
           email: firebase_user.email,
@@ -80,6 +97,8 @@ export class NotificationService {
         desk: createNotificationDto.desk,
         service: createNotificationDto.service,
         date: this.convertDateToTimeStamp(createNotificationDto.date),
+        prefered_way_of_communication:
+          createNotificationDto.prefered_way_of_communication,
       });
       if (notificationExistAlready) {
         // if same notification exist already, return it
@@ -104,24 +123,21 @@ export class NotificationService {
     }
     return user;
   }
-  async findnotificationForUser({ firebase_user_id, service, date, desk }) {
+  async findnotificationForUser({
+    firebase_user_id,
+    service,
+    date,
+    desk,
+    prefered_way_of_communication,
+  }) {
     const notification = await this.notificationModel.findOne({
       firebase_user_id,
       service,
       date,
       desk,
+      prefered_way_of_communication,
     });
 
-    return notification;
-  }
-
-  async updateNotification({ firebase_user_id, service, date, desk }) {
-    const notification = await this.notificationModel.findOneAndUpdate({
-      firebase_user_id,
-      service,
-      date,
-      desk,
-    });
     return notification;
   }
 
@@ -176,10 +192,21 @@ export class NotificationService {
   getToday = () => dayjs().unix();
 
   generateNotificationMessage = (notification, soonestAvailableTime) => {
+    if (
+      notification.prefered_way_of_communication ===
+      PreferedWayOfCommunication.PUSH_NOTIFICATION
+    ) {
+      return `Hooray! There is a new slot is available for ${this.getServiceLabelByServiceCode(
+        notification.service,
+      ).toLowerCase()} on this time: ${soonestAvailableTime.date}
+    
+      )}`;
+    }
+    // for other type of notifications
     return `
       <p>Hello!</p>
       <p>You have requested a slot sooner than ${this.convertTimeStampToDate(
-        notification.date,
+        notification.date as any,
       )} for ${this.getServiceLabelByServiceCode(
       notification.service,
     )} at ${this.getDeskLabelByDeskCode(notification.desk)}.</p>
@@ -216,17 +243,37 @@ export class NotificationService {
         notifications[i],
         soonestAvailableTime,
       );
-      this.handleSendNotificationToUser(user, message);
+      this.handleSendNotificationToUser(
+        user,
+        message,
+        undefined,
+        notifications[i].prefered_way_of_communication,
+      );
     }
     return notifications;
   };
 
-  handleSendNotificationToUser = async (user, message) => {
-    console.log(user, message);
-    this.messengerService.sendMessageToUser(user, message);
+  handleSendNotificationToUser = async (
+    user,
+    message,
+    title = 'New slot is available',
+    prefered_way_of_communication,
+  ) => {
+    this.messengerService.sendMessageToUser(
+      user,
+      message,
+      title,
+      prefered_way_of_communication,
+    );
   };
 
   generateExpiredRequestNotificationMessage = (notification) => {
+    if (
+      notification.prefered_way_of_communication ===
+      PreferedWayOfCommunication.PUSH_NOTIFICATION
+    ) {
+      return 'Your request has been expired.';
+    }
     return `<p>Hello!</p><p>You have requested a slot sooner than  ${this.convertTimeStampToDate(
       notification.date,
     )} for ${this.getServiceLabelByServiceCode(
@@ -249,7 +296,13 @@ export class NotificationService {
       const message = this.generateExpiredRequestNotificationMessage(
         notifications[i],
       );
-      await this.handleSendNotificationToUser(user, message);
+      // alwayt
+      await this.handleSendNotificationToUser(
+        user,
+        message,
+        undefined,
+        notifications[i].prefered_way_of_communication,
+      );
       await notifications[i].remove();
     }
 

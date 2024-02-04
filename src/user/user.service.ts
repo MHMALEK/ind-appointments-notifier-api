@@ -26,7 +26,17 @@ export class UserService {
       .exec();
   }
   async unsubscribeAndRemoveNotificationsForOneService(notificationId: string) {
-    await this.notificationService.deleteOneNotificationForUser(notificationId);
+    try {
+      await this.notificationService.deleteOneNotificationForUser(
+        notificationId,
+      );
+      return 'you have been unsubscribed from this notification';
+    } catch (e: any) {
+      throw new Error(
+        'there was an error unsubscribing you from this service, please try again later or contact support' +
+          e,
+      );
+    }
   }
 
   async unsubscribeAndRemoveAllNotificationsAndUser(notificationId: string) {
@@ -35,14 +45,62 @@ export class UserService {
         notificationId,
       );
 
-      console.log('user', user);
-
       await this.userModel.deleteOne({
         firebase_user_id: user.firebase_user_id,
       });
       await this.notificationService.deleteAllNotificationsForUser(
         user.firebase_user_id,
       );
+      return 'you have been unsubscribed from all notifications';
+    } catch (e: any) {
+      throw new Error(e);
+    }
+  }
+
+  async setPushToken(token: string, user_id: string, email: string) {
+    try {
+      if (!token || !user_id || !email)
+        throw new Error('token or user_id or email is not provided');
+
+      let user;
+      const isUserAlreadyRegistered = (await this.findUserByFireBaseUserId({
+        firebase_user_id: user_id,
+      })) as UserDocument;
+
+      if (isUserAlreadyRegistered) {
+        user = isUserAlreadyRegistered;
+      } else {
+        user = await this.saveUserToDb({
+          email,
+          pushToken: token,
+          firebase_user_id: user_id,
+        });
+      }
+
+      user.pushToken = token;
+
+      await user.save();
+      return 'success';
+    } catch (e: any) {
+      throw new Error(e);
+    }
+  }
+
+  async deleteUserAndAllNotifications(user_id: string) {
+    try {
+      if (!user_id) throw new Error('user_id  is not provided');
+
+      const isUserAlreadyRegistered = (await this.findUserByFireBaseUserId({
+        firebase_user_id: user_id,
+      })) as UserDocument;
+
+      if (isUserAlreadyRegistered) {
+        await this.notificationService.deleteAllNotificationsForUser(user_id);
+        await isUserAlreadyRegistered.remove();
+        return 'success';
+      } else {
+        throw new Error('user Not found');
+      }
     } catch (e: any) {
       throw new Error(e);
     }

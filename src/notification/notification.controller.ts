@@ -34,6 +34,23 @@ export class NotificationController {
     }
   }
 
+  @Get('/list/all')
+  async getAllNotificationsForUser(@Req() req: Request) {
+    try {
+      const user = req.user;
+      const res = await this.notificationService.getAllNotificationsForUser(
+        user,
+      );
+      return res;
+    } catch (e: any) {
+      console.log(e);
+      throw new HttpException(
+        e.response || 'Something went wrong',
+        e.status || 500,
+      );
+    }
+  }
+
   @Get('')
   async findmalek() {
     this.notificationService.updateDataBaseAndRemoveOutdatedRequests();

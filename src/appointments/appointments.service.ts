@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { HttpException, Injectable } from '@nestjs/common';
-import { catchError, firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, map } from 'rxjs';
 import Appointment from 'src/appointments/interfaces/appointment.interface';
 import {
   defaultINDAPIPayload,
@@ -34,12 +34,14 @@ export class AppointmentsService {
   }
 
   async requestAppointments(payload) {
-    return firstValueFrom(this.generateHttpRequest(payload)).then(
-      (response) => response.data,
-      catchError(() => {
-        throw new HttpException('something went wrong', 500);
-      }),
-    );
+    return this.generateHttpRequest(payload)
+      .pipe(
+        map((response) => response.data),
+        catchError((error) => {
+          throw new HttpException('something went wrong', 500);
+        }),
+      )
+      .toPromise();
   }
 
   async findAll(payload) {

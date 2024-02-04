@@ -5,6 +5,8 @@ import { AppointmentsController } from './appointments.controller';
 import { QueryBuilderService } from 'src/query-builder/query-builder.service';
 import { MessengerService } from 'src/messenger/messenger.service';
 import { IndContentService } from 'src/ind-content/ind-content.service';
+import { PushNotificationModule } from 'src/push-notification/push-notification.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   providers: [
@@ -13,7 +15,7 @@ import { IndContentService } from 'src/ind-content/ind-content.service';
     MessengerService,
     IndContentService,
   ],
-  imports: [HttpModule],
+  imports: [HttpModule, PushNotificationModule, MailModule],
   controllers: [AppointmentsController],
   exports: [AppointmentsService, QueryBuilderService, HttpModule],
 })

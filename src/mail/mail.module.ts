@@ -4,7 +4,6 @@ import { MailController } from './mail.controller';
 import { MailService } from './mail.service';
 import * as dotenv from 'dotenv';
 dotenv.config();
-console.log(process.env.MAIL_SMPT_USER, process.env.MAIL_SMPT_PASSWORD);
 @Module({
   providers: [MailService],
   imports: [

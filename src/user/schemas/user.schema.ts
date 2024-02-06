@@ -5,12 +5,16 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {
-  @Prop({ sparse: true, unique: true })
+  @Prop({ unique: true, index: true, sparse: true })
   email: string;
-  @Prop({ unique: false })
+  @Prop({ unique: true, index: true, sparse: true })
   pushToken: string | undefined | null;
-  @Prop({ unique: true })
+  @Prop({ unique: true, index: true, sparse: true })
   firebase_user_id: string;
+  @Prop({ unique: true, index: true, sparse: true })
+  telegram_chat_id: string;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+const UserSchema = SchemaFactory.createForClass(User);
+
+export { UserSchema };

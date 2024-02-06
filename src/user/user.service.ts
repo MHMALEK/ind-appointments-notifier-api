@@ -18,12 +18,26 @@ export class UserService {
     const createdUser = new this.userModel(createUserDto);
     return createdUser.save();
   }
-  findUserByFireBaseUserId(data: { firebase_user_id: string }): Promise<User> {
-    return this.userModel
-      .findOne({
-        firebase_user_id: data.firebase_user_id,
-      })
-      .exec();
+  findUserByFireBaseUserId(data: {
+    firebase_user_id?: string;
+    telegram_chat_id?: string;
+  }): Promise<User> {
+    let query;
+
+    if (data.firebase_user_id && !data.telegram_chat_id) {
+      query = { firebase_user_id: data.firebase_user_id };
+    } else if (data.telegram_chat_id && !data.firebase_user_id) {
+      query = { telegram_chat_id: data.telegram_chat_id };
+    } else if (data.telegram_chat_id && data.firebase_user_id) {
+      query = {
+        $or: [
+          { firebase_user_id: data?.firebase_user_id },
+          { telegram_chat_id: data?.telegram_chat_id },
+        ],
+      };
+    }
+
+    return this.userModel.findOne(query).exec();
   }
   async unsubscribeAndRemoveNotificationsForOneService(notificationId: string) {
     try {

@@ -24,8 +24,6 @@ export class MailService {
         return 'mail has been successfully sent';
       })
       .catch((e) => {
-        console.log(e);
-
         return 'send mail failed';
       });
   }

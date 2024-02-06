@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { sendMailMessageDTO } from 'src/mail/DTO/sendMailMessage.dto';
@@ -19,6 +19,8 @@ export class MessengerService {
   constructor(
     private pushNotificationService: PushNotificationService,
     private mailService: MailService,
+    private httpService: HttpService,
+    private configService: ConfigService,
   ) {}
 
   private async sendPushMessage(payload: SendPushNotificationDTO) {
@@ -26,10 +28,35 @@ export class MessengerService {
   }
 
   private async sendEmailMessage(payload: sendMailMessageDTO) {
-    await this.mailService.sendMail(payload);
+    this.mailService.sendMail(payload);
+  }
+
+  private async sendTelegramMessage(payload: {
+    telegram_chat_id: string;
+    message: string;
+  }) {
+    try {
+      const telegramApiUrl = this.configService.get('TELEGRAM_API_URL');
+      await this.httpService
+        .post(`${telegramApiUrl}/send-message`, payload)
+        .toPromise();
+    } catch (e) {
+      console.log(e);
+      throw new HttpException('there was an error sending the message', 500);
+    }
   }
   sendMessageToUser(user, message, title, prefered_way_of_communication) {
-    const { pushToken, email } = user;
+    const { pushToken, email, telegram_chat_id } = user;
+    console.log(
+      'telegram_chat_id',
+      telegram_chat_id,
+      pushToken,
+      email,
+      user,
+      message,
+      title,
+      prefered_way_of_communication,
+    );
 
     if (
       prefered_way_of_communication ===
@@ -47,6 +74,19 @@ export class MessengerService {
         subject: title,
         html: message,
         text: message,
+      });
+    }
+    console.log(
+      'telegram_chat_id',
+      telegram_chat_id,
+      prefered_way_of_communication,
+      message,
+    );
+    if (prefered_way_of_communication === PreferedWayOfCommunication.TELEGRAM) {
+      // send telegram message
+      this.sendTelegramMessage({
+        telegram_chat_id,
+        message,
       });
     }
   }

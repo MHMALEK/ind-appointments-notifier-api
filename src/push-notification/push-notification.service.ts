@@ -14,7 +14,6 @@ export class PushNotificationService {
   constructor(private configService: ConfigService) {}
   async sendPushNotification(payload: SendPushNotificationDTO) {
     const { title, message: body, pushToken } = payload;
-    console.log(title, body, pushToken, firebase.messaging());
     try {
       await firebase
         .messaging()

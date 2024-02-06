@@ -6,8 +6,11 @@ export type NotificationDocument = HydratedDocument<Notification>;
 
 @Schema()
 export class Notification {
-  @Prop({ required: true })
+  @Prop({ unique: false, index: true, sparse: true })
   firebase_user_id: string;
+
+  @Prop({ unique: false, index: true, sparse: true })
+  telegram_chat_id: string;
 
   @Prop({ required: true })
   date: number;

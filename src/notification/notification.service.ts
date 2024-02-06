@@ -39,9 +39,16 @@ export class NotificationService {
     return dayjs(dateObject).format('DD-MM-YYYY');
   }
 
-  async getAllNotificationsForUser(firebase_user) {
+  async getAllNotificationsForUser({
+    firebase_user,
+    telegram_chat_id,
+  }: {
+    firebase_user?: any;
+    telegram_chat_id?: string;
+  }) {
     const user = await this.userService.findUserByFireBaseUserId({
-      firebase_user_id: firebase_user.user_id,
+      firebase_user_id: firebase_user?.user_id,
+      telegram_chat_id,
     });
     if (!user) {
       throw new HttpException('user not found', 404);
@@ -58,7 +65,8 @@ export class NotificationService {
       throw new HttpException('notification not found', 404);
     }
     const user = await this.userService.findUserByFireBaseUserId({
-      firebase_user_id: notification.firebase_user_id,
+      firebase_user_id: notification?.firebase_user_id,
+      telegram_chat_id: notification?.telegram_chat_id,
     });
     if (!user) {
       throw new HttpException('user not found', 404);
@@ -79,7 +87,7 @@ export class NotificationService {
   ) {
     try {
       const userWhoMadeNotification = await this.findUserWhoCreateNotification({
-        firebase_user_id: firebase_user.user_id,
+        firebase_user_id: firebase_user?.user_id,
       });
 
       if (!userWhoMadeNotification) {
@@ -89,10 +97,11 @@ export class NotificationService {
           firebase_user_id: firebase_user.user_id,
           email: firebase_user.email,
           pushToken: firebase_user.pushToken,
+          telegram_chat_id: undefined,
         });
       }
 
-      const notificationExistAlready = await this.findnotificationForUser({
+      const notificationExistAlready = await this.findNotificationForUser({
         firebase_user_id: firebase_user.user_id,
         desk: createNotificationDto.desk,
         service: createNotificationDto.service,
@@ -107,7 +116,7 @@ export class NotificationService {
         // if notification does not exist, create it
         await this.saveNotificationToDb({
           ...createNotificationDto,
-          firebase_user_id: userWhoMadeNotification.firebase_user_id,
+          firebase_user_id: userWhoMadeNotification?.firebase_user_id,
         });
       }
     } catch (e) {
@@ -116,31 +125,50 @@ export class NotificationService {
     }
   }
 
-  async findUserWhoCreateNotification(payload: { firebase_user_id: string }) {
+  async findUserWhoCreateNotification(payload: {
+    firebase_user_id?: string;
+    telegram_chat_id?: string;
+  }) {
     const user = await this.userService.findUserByFireBaseUserId(payload);
     if (!user) {
       return null;
     }
     return user;
   }
-  async findnotificationForUser({
+  async findNotificationForUser({
     firebase_user_id,
     service,
     date,
     desk,
+    telegram_chat_id,
     prefered_way_of_communication,
+  }: {
+    firebase_user_id?: string;
+    service;
+    date;
+    desk;
+    telegram_chat_id?: string;
+    prefered_way_of_communication;
   }) {
-    const notification = await this.notificationModel.findOne({
-      firebase_user_id,
+    const query = {
       service,
       date,
       desk,
       prefered_way_of_communication,
-    });
+      $or: [],
+    };
+
+    if (firebase_user_id) {
+      query.$or.push({ firebase_user_id });
+    }
+    if (telegram_chat_id) {
+      query.$or.push({ telegram_chat_id });
+    }
+
+    const notification = await this.notificationModel.findOne(query);
 
     return notification;
   }
-
   findNotificationThatIsSoonerThanThisDate = async ({
     date,
     service,
@@ -202,6 +230,28 @@ export class NotificationService {
     
       )}`;
     }
+
+    if (
+      notification.prefered_way_of_communication ===
+      PreferedWayOfCommunication.TELEGRAM
+    ) {
+      return `
+      Hello! You have requested a slot sooner than ${this.convertTimeStampToDate(
+        notification.date as any,
+      )} for ${this.getServiceLabelByServiceCode(
+        notification.service,
+      )} at ${this.getDeskLabelByDeskCode(notification.desk)}.
+We have found a new slot available at ${soonestAvailableTime.date} from ${
+        soonestAvailableTime.startTime
+      } to ${
+        soonestAvailableTime.endTime
+      }. You can book it via <a href="https://oap.ind.nl/oap/en/#/${
+        notification.service
+      }">this link</a>. 
+      
+If you don't want to get any notification for this service, please /unsubscribe to cancel your request.
+      `;
+    }
     // for other type of notifications
     return `
       <p>Hello!</p>
@@ -238,11 +288,13 @@ export class NotificationService {
     for (let i = 0; i < notifications.length; i++) {
       const user = await this.userService.findUserByFireBaseUserId({
         firebase_user_id: notifications[i].firebase_user_id,
+        telegram_chat_id: notifications[i].telegram_chat_id,
       });
       const message = this.generateNotificationMessage(
         notifications[i],
         soonestAvailableTime,
       );
+
       this.handleSendNotificationToUser(
         user,
         message,
@@ -292,6 +344,7 @@ export class NotificationService {
     for (let i = 0; i < notifications.length; i++) {
       const user = await this.userService.findUserByFireBaseUserId({
         firebase_user_id: notifications[i].firebase_user_id,
+        telegram_chat_id: notifications[i].telegram_chat_id,
       });
       const message = this.generateExpiredRequestNotificationMessage(
         notifications[i],
@@ -324,5 +377,47 @@ export class NotificationService {
     return await this.notificationModel.findOneAndDelete({
       _id: notificationId,
     });
+  }
+
+  async createNewTelegramNotification(telegram_chat_id, service, desk, date) {
+    try {
+      const userWhoMadeNotification = await this.findUserWhoCreateNotification({
+        telegram_chat_id: telegram_chat_id,
+      });
+
+      if (!userWhoMadeNotification) {
+        // first time user
+
+        await this.userService.saveUserToDb({
+          telegram_chat_id,
+        });
+      }
+
+      const notificationExistAlready = await this.findNotificationForUser({
+        desk,
+        service,
+        date: this.convertDateToTimeStamp(date),
+        prefered_way_of_communication: PreferedWayOfCommunication.TELEGRAM,
+        telegram_chat_id,
+      });
+
+      if (notificationExistAlready) {
+        // if same notification exist already, return it
+        return notificationExistAlready;
+      } else {
+        // if notification does not exist, create it
+        await this.saveNotificationToDb({
+          desk,
+          service,
+          date,
+          telegram_chat_id,
+          prefered_way_of_communication: PreferedWayOfCommunication.TELEGRAM,
+          firebase_user_id: undefined,
+        });
+      }
+    } catch (e) {
+      console.log(e);
+      throw new HttpException('something went wrong', 500);
+    }
   }
 }

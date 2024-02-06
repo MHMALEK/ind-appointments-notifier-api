@@ -16,6 +16,7 @@ import { MailModule } from './mail/mail.module';
 import { SmsModule } from './sms/sms.module';
 import { PushNotificationModule } from './push-notification/push-notification.module';
 import * as serviceAccount from 'src/ind-application-af6db-firebase-adminsdk-vyg7c-87a3b1a018.json';
+import { CronjobsModule } from './cronjobs/cronjobs.module';
 
 @Module({
   imports: [
@@ -35,6 +36,8 @@ import * as serviceAccount from 'src/ind-application-af6db-firebase-adminsdk-vyg
     MailModule,
     SmsModule,
     PushNotificationModule,
+
+    CronjobsModule,
   ],
 
   controllers: [AppController],

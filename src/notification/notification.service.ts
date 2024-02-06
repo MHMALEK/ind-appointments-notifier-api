@@ -326,6 +326,19 @@ If you don't want to get any notification for this service, please /unsubscribe 
     ) {
       return 'Your request has been expired.';
     }
+    if (
+      notification.prefered_way_of_communication ===
+      PreferedWayOfCommunication.TELEGRAM
+    ) {
+      return `
+      Hello! You have requested a slot sooner than ${this.convertTimeStampToDate(
+        notification.date as any,
+      )} for ${this.getServiceLabelByServiceCode(
+        notification.service,
+      )} at ${this.getDeskLabelByDeskCode(notification.desk)}.
+We Could not find any time sooner that your requested slot. if you still need an appointment, please create a new request with /start command.
+      `;
+    }
     return `<p>Hello!</p><p>You have requested a slot sooner than  ${this.convertTimeStampToDate(
       notification.date,
     )} for ${this.getServiceLabelByServiceCode(
